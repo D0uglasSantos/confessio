@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 function isNextRedirect(error: unknown) {
@@ -17,35 +18,38 @@ export async function requireAdminChurch() {
     const supabase = await createClient();
     const {
       data: { user },
-      error: userError,
     } = await supabase.auth.getUser();
 
-    if (userError || !user) {
+    if (!user) {
       redirect("/admin/login");
     }
 
-    const { data: membership, error } = await supabase
+    const admin = createAdminClient();
+    const { data: membership } = await admin
       .from("church_admins")
-      .select("church_id, churches(id, name, slug)")
+      .select("church_id")
       .eq("user_id", user.id)
       .maybeSingle();
 
-    if (error || !membership?.churches) {
-      redirect("/admin/login?error=sem-permissao");
+    if (!membership) {
+      redirect("/admin/sem-permissao");
     }
 
-    const church = Array.isArray(membership.churches)
-      ? membership.churches[0]
-      : membership.churches;
+    const { data: church } = await admin
+      .from("churches")
+      .select("id, name, slug")
+      .eq("id", membership.church_id)
+      .maybeSingle();
 
     if (!church) {
-      redirect("/admin/login?error=sem-permissao");
+      redirect("/admin/sem-permissao");
     }
 
     return {
       supabase,
+      admin,
       user,
-      church: church as { id: string; name: string; slug: string },
+      church,
     };
   } catch (error) {
     if (isNextRedirect(error)) {

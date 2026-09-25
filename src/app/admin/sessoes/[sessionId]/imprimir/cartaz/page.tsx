@@ -11,9 +11,9 @@ type CartazPageProps = {
 
 export default async function SessionPosterPage({ params }: CartazPageProps) {
   const { sessionId } = await params;
-  const { supabase, church } = await requireAdminChurch();
+  const { admin, church } = await requireAdminChurch();
 
-  const { data: session } = await supabase
+  const { data: session } = await admin
     .from("sessions")
     .select("id, name, slug, church_id")
     .eq("id", sessionId)

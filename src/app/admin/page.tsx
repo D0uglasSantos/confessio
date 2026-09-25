@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import { CreateSessionForm } from "@/components/admin/create-session-form";
-import { formatAdminDateTime } from "@/lib/admin/format";
 import { SignOutButton } from "@/components/admin/sign-out-button";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -14,12 +13,14 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { requireAdminChurch } from "@/lib/admin/church";
+import { formatAdminDateTime } from "@/lib/admin/format";
 import { sessionStatusLabel } from "@/lib/admin/labels";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export default async function AdminPage() {
-  const { supabase, church } = await requireAdminChurch();
-
-  const { data: sessions } = await supabase
+  const { church } = await requireAdminChurch();
+  const admin = createAdminClient();
+  const { data: sessions } = await admin
     .from("sessions")
     .select("id, name, slug, status, starts_at, created_at")
     .eq("church_id", church.id)
@@ -61,7 +62,7 @@ export default async function AdminPage() {
                     </CardDescription>
                   </div>
                   <Badge variant="outline">
-                    {sessionStatusLabel[session.status]}
+                    {sessionStatusLabel[session.status] ?? session.status}
                   </Badge>
                 </CardHeader>
                 <CardContent>

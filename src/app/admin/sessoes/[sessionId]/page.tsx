@@ -42,9 +42,9 @@ export default async function AdminSessionPage({
   params,
 }: AdminSessionPageProps) {
   const { sessionId } = await params;
-  const { supabase, church } = await requireAdminChurch();
+  const { admin, church } = await requireAdminChurch();
 
-  const { data: session } = await supabase
+  const { data: session } = await admin
     .from("sessions")
     .select(
       "id, name, slug, status, ticket_prefix, starts_at, show_waiting_queue_on_tv, church_id",
@@ -58,13 +58,13 @@ export default async function AdminSessionPage({
 
   const [{ data: stations }, { data: adminStateRaw }, { data: printBatches }] =
     await Promise.all([
-      supabase
+      admin
         .from("stations")
         .select("id, name, priest_name, status, station_access(access_token)")
         .eq("session_id", sessionId)
         .order("name"),
-      supabase.rpc("admin_get_session_state", { p_session_id: sessionId }),
-      supabase
+      admin.rpc("admin_get_session_state", { p_session_id: sessionId }),
+      admin
         .from("paper_print_batches")
         .select(
           "id, ticket_count, first_public_number, last_public_number, created_at",
@@ -105,7 +105,7 @@ export default async function AdminSessionPage({
           </Link>
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <h1 className="font-heading text-4xl">{session.name}</h1>
-            <Badge>{sessionStatusLabel[session.status]}</Badge>
+            <Badge>{sessionStatusLabel[session.status] ?? session.status}</Badge>
           </div>
           <p className="mt-2 text-muted-foreground">
             Prefixo {session.ticket_prefix} · /s/{session.slug}
@@ -227,7 +227,7 @@ export default async function AdminSessionPage({
                     </CardDescription>
                   </div>
                   <Badge variant="outline">
-                    {stationStatusLabel[station.status]}
+                    {stationStatusLabel[station.status] ?? station.status}
                   </Badge>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -314,7 +314,7 @@ export default async function AdminSessionPage({
                         {ticket.public_code}
                       </td>
                       <td className="px-4 py-3">
-                        {ticketStatusLabel[ticket.status]}
+                        {ticketStatusLabel[ticket.status] ?? ticket.status}
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">
                         {formatAdminTime(ticket.created_at)}

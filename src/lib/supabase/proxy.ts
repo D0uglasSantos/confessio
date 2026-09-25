@@ -64,18 +64,12 @@ export async function updateSession(request: NextRequest) {
   const isPublicAdminAuth =
     pathname.startsWith("/admin/login") ||
     pathname.startsWith("/admin/esqueci-senha") ||
-    pathname.startsWith("/admin/redefinir-senha");
+    pathname.startsWith("/admin/redefinir-senha") ||
+    pathname.startsWith("/admin/sem-permissao");
 
   if (isAdminRoute && !isPublicAdminAuth && !user) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/admin/login";
-    redirectUrl.search = "";
-    return NextResponse.redirect(redirectUrl);
-  }
-
-  if (pathname.startsWith("/admin/login") && user) {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/admin";
     redirectUrl.search = "";
     return NextResponse.redirect(redirectUrl);
   }

@@ -20,9 +20,9 @@ export default async function PaperTicketPage({
     notFound();
   }
 
-  const { supabase, church } = await requireAdminChurch();
+  const { admin, church } = await requireAdminChurch();
 
-  const { data: session } = await supabase
+  const { data: session } = await admin
     .from("sessions")
     .select("id, name, slug, church_id")
     .eq("id", sessionId)
@@ -32,7 +32,7 @@ export default async function PaperTicketPage({
     notFound();
   }
 
-  const { data: ticket } = await supabase
+  const { data: ticket } = await admin
     .from("tickets")
     .select("id, public_code")
     .eq("session_id", session.id)
