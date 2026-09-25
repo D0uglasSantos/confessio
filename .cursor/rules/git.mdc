@@ -1,0 +1,40 @@
+---
+description: Padrão obrigatório de branches e commits (gitmoji + Conventional Commits)
+alwaysApply: true
+---
+
+# Git
+
+Fonte da verdade: `docs/git.md`.
+
+## Branches
+
+`tipo/descricao-em-kebab-case` em inglês, um assunto, a partir de `main` atualizado.
+
+Tipos: `feat/`, `fix/`, `chore/`, `refactor/`, `docs/`.
+
+Não usar `ft/`, `bg/`, `bug/`, `rt/`, underscore nem prefixos mistos (`feat/fix-...`).
+
+## Commits
+
+```
+:gitmoji:tipo(scope): summary in English
+```
+
+| Tipo | Gitmoji |
+|------|---------|
+| `feat` | `:sparkles:` |
+| `fix` | `:bug:` |
+| `chore` | `:wrench:` |
+| `refactor` | `:recycle:` |
+| `docs` | `:memo:` |
+
+Scope obrigatório, um só, kebab-case: `docs`, `queue`, `admin`, `auth`, `priest`, `tv`, `print`, `pwa`, `supabase`, `realtime`, `layout`, `ci`.
+
+Summary em inglês, imperativo (`add`, `fix`, `update`, `remove`), sem ponto final, focando o resultado.
+
+Certo: `:sparkles:feat(queue): add anti double-tap lock on join`
+
+Errado: `feat: add docs` · `:sparkles:feat: add callback` · `Adiciona documentação`
+
+Merges do GitHub (`Merge pull request #N`) ficam como o GitHub cria.

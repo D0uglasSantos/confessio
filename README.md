@@ -10,6 +10,8 @@ Este repositório está na **Fase 7 (Polish de concorrência)**: app Next.js + s
 - O sistema gerencia fila, senhas e confessionários. Nunca armazena conteúdo da confissão.
 - Regras críticas de concorrência ficam no PostgreSQL, não no cliente.
 
+Diretrizes obrigatórias: [docs/diretrizes](docs/diretrizes). Padrão de Git: [docs/git.md](docs/git.md). Spec do banco: [docs/DATABASE.md](docs/DATABASE.md).
+
 ## Stack
 
 - Next.js (App Router) + TypeScript
