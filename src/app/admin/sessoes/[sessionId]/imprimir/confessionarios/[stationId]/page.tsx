@@ -13,9 +13,9 @@ type StationCardPageProps = {
 
 export default async function StationCardPage({ params }: StationCardPageProps) {
   const { sessionId, stationId } = await params;
-  const { supabase, church } = await requireAdminChurch();
+  const { admin, church } = await requireAdminChurch();
 
-  const { data: session } = await supabase
+  const { data: session } = await admin
     .from("sessions")
     .select("id, name, church_id")
     .eq("id", sessionId)
@@ -25,7 +25,7 @@ export default async function StationCardPage({ params }: StationCardPageProps) 
     notFound();
   }
 
-  const { data: station } = await supabase
+  const { data: station } = await admin
     .from("stations")
     .select("id, name, priest_name, session_id, station_access(access_token)")
     .eq("id", stationId)

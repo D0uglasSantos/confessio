@@ -23,9 +23,9 @@ export default async function StationCardsPage({
   params,
 }: StationCardsPageProps) {
   const { sessionId } = await params;
-  const { supabase, church } = await requireAdminChurch();
+  const { admin, church } = await requireAdminChurch();
 
-  const { data: session } = await supabase
+  const { data: session } = await admin
     .from("sessions")
     .select("id, name, church_id")
     .eq("id", sessionId)
@@ -35,7 +35,7 @@ export default async function StationCardsPage({
     notFound();
   }
 
-  const { data: stations } = await supabase
+  const { data: stations } = await admin
     .from("stations")
     .select("id, name, priest_name, station_access(access_token)")
     .eq("session_id", session.id)
