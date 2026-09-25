@@ -61,24 +61,30 @@ export async function signInAdmin(
   }
 
   if (data.user) {
-    const { createAdminClient } = await import("@/lib/supabase/admin");
-    const admin = createAdminClient();
-    const { data: membership } = await admin
-      .from("church_admins")
-      .select("church_id")
-      .eq("user_id", data.user.id)
-      .maybeSingle();
+    try {
+      const { tryCreateAdminClient } = await import("@/lib/supabase/admin");
+      const admin = tryCreateAdminClient();
+      if (admin) {
+        const { data: membership } = await admin
+          .from("church_admins")
+          .select("church_id")
+          .eq("user_id", data.user.id)
+          .maybeSingle();
 
-    if (!membership) {
-      await supabase.auth.signOut();
-      return {
-        ok: false,
-        message: "Este usuário não é administrador da paróquia.",
-      };
+        if (!membership) {
+          await supabase.auth.signOut();
+          return {
+            ok: false,
+            message: "Este usuário não é administrador da paróquia.",
+          };
+        }
+      }
+    } catch {
+      // O painel confirma o vínculo. Não derruba o login.
     }
   }
 
-  redirect("/admin");
+  return { ok: true };
 }
 
 export async function requestPasswordReset(

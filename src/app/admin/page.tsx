@@ -15,11 +15,13 @@ import { Separator } from "@/components/ui/separator";
 import { requireAdminChurch } from "@/lib/admin/church";
 import { formatAdminDateTime } from "@/lib/admin/format";
 import { sessionStatusLabel } from "@/lib/admin/labels";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { tryCreateAdminClient } from "@/lib/supabase/admin";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  const { church } = await requireAdminChurch();
-  const admin = createAdminClient();
+  const { church, admin: verifiedAdmin } = await requireAdminChurch();
+  const admin = tryCreateAdminClient() ?? verifiedAdmin;
   const { data: sessions } = await admin
     .from("sessions")
     .select("id, name, slug, status, starts_at, created_at")

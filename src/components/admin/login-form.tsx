@@ -2,7 +2,8 @@
 
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useActionState, useEffect, useState } from "react";
 
 import { signInAdmin, type ActionResult } from "@/app/admin/actions";
 import { Button } from "@/components/ui/button";
@@ -13,9 +14,16 @@ import { isLocalSupabase } from "@/lib/supabase/env";
 const initialState: ActionResult | null = null;
 
 export function LoginForm({ errorHint }: { errorHint?: string }) {
+  const router = useRouter();
   const [state, formAction, pending] = useActionState(signInAdmin, initialState);
   const [showPassword, setShowPassword] = useState(false);
   const localDev = isLocalSupabase();
+
+  useEffect(() => {
+    if (!state?.ok) return;
+    router.refresh();
+    router.push("/admin");
+  }, [router, state]);
 
   return (
     <form action={formAction} className="space-y-4">

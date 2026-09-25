@@ -16,3 +16,11 @@ export function createAdminClient() {
     },
   });
 }
+
+export function tryCreateAdminClient() {
+  try {
+    return createAdminClient();
+  } catch {
+    return null;
+  }
+}
