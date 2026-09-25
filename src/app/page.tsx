@@ -106,7 +106,7 @@ export default async function HomePage() {
       cta: "Abrir telão",
     },
     {
-      href: "/admin",
+      href: "/admin/login",
       title: "Administração",
       description: "Abrir sessão, acompanhar a fila e métricas.",
       cta: "Abrir admin",
