@@ -1,0 +1,24 @@
+-- Smoke test manual de concorrência da fila.
+-- Rodar no Studio/SQL Editor com a sessão seed 7DHF92 aberta e tickets WAITING.
+--
+-- Expectativa:
+-- 1) duas estações AVAILABLE chamando ao mesmo tempo NÃO pegam o mesmo ticket
+-- 2) a segunda chamada em estação já CALLING falha com STATION_NOT_AVAILABLE
+-- 3) fila vazia retorna QUEUE_EMPTY
+
+-- Exemplo (substitua os tokens reais de station_access):
+--
+-- SELECT public.call_next_ticket(
+--   '00000000-0000-0000-0000-000000000021',
+--   '<token-station-01>'::uuid
+-- );
+-- SELECT public.call_next_ticket(
+--   '00000000-0000-0000-0000-000000000022',
+--   '<token-station-02>'::uuid
+-- );
+--
+-- Verificar:
+-- SELECT id, public_code, status, station_id
+-- FROM public.tickets
+-- WHERE session_id = '00000000-0000-0000-0000-000000000010'
+--   AND status = 'CALLED';
