@@ -5,6 +5,22 @@ export function getAppUrl() {
   );
 }
 
+export function safeAuthNext(
+  value: string | null | undefined,
+  fallback = "/admin/redefinir-senha",
+) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+    return fallback;
+  }
+
+  return value;
+}
+
+export function passwordResetCallbackUrl() {
+  // Site URL do projeto. Redirects extras precisam estar allowlisted no dashboard.
+  return getAppUrl();
+}
+
 export function sessionPublicUrl(slug: string) {
   return `${getAppUrl()}/s/${slug}`;
 }
