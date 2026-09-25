@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireAdminChurch } from "@/lib/admin/church";
+import { passwordResetCallbackUrl } from "@/lib/app-url";
 import { mapQueueError } from "@/lib/queue/errors";
 import {
   addStationSchema,
@@ -43,7 +44,91 @@ export async function signInAdmin(
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
-    return { ok: false, message: "Credenciais inválidas." };
+    if (error.code === "email_not_confirmed") {
+      return {
+        ok: false,
+        message: "Confirme o e-mail deste usuário no painel de Auth do Supabase.",
+      };
+    }
+
+    return {
+      ok: false,
+      message: "Credenciais inválidas. Use Esqueci a senha se não lembrar.",
+    };
+  }
+
+  redirect("/admin");
+}
+
+export async function requestPasswordReset(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  const email = String(formData.get("email") ?? "").trim();
+
+  if (!email) {
+    return { ok: false, message: "Informe o e-mail." };
+  }
+
+  const { createClient } = await import("@/lib/supabase/server");
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: passwordResetCallbackUrl(),
+  });
+
+  if (error) {
+    return {
+      ok: false,
+      message:
+        "Não foi possível enviar o e-mail. Confira o e-mail e as Redirect URLs no Supabase.",
+    };
+  }
+
+  return {
+    ok: true,
+    message:
+      "Se o e-mail existir, enviamos um link para definir uma nova senha.",
+  };
+}
+
+export async function updateAdminPassword(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  const password = String(formData.get("password") ?? "");
+  const confirm = String(formData.get("confirm") ?? "");
+
+  if (password.length < 8) {
+    return { ok: false, message: "A senha precisa ter pelo menos 8 caracteres." };
+  }
+
+  if (password !== confirm) {
+    return { ok: false, message: "As senhas não coincidem." };
+  }
+
+  const { createClient } = await import("@/lib/supabase/server");
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      ok: false,
+      message: "Link expirado ou inválido. Peça um novo e-mail de recuperação.",
+    };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+
+  if (error) {
+    return {
+      ok: false,
+      message:
+        error.message.includes("leaked") || error.code === "weak_password"
+          ? "Essa senha é fraca ou já vazou. Escolha outra."
+          : "Não foi possível atualizar a senha. Tente de novo.",
+    };
   }
 
   redirect("/admin");

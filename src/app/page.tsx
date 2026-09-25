@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cn } from "cn";
 
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -14,9 +15,10 @@ import { createAdminClient } from "@/lib/supabase/admin";
 const SESSION_PRIORITY = ["OPEN", "ENTRY_CLOSED", "DRAFT", "FINISHED"] as const;
 
 type DemoLinks = {
-  faithfulHref: string;
-  priestHref: string;
-  tvHref: string;
+  faithfulHref: string | null;
+  priestHref: string | null;
+  tvHref: string | null;
+  hasSession: boolean;
 };
 
 function stationToken(
@@ -32,9 +34,10 @@ function stationToken(
 
 async function getDemoLinks(): Promise<DemoLinks> {
   const fallback: DemoLinks = {
-    faithfulHref: "/admin",
-    priestHref: "/admin",
-    tvHref: "/admin",
+    faithfulHref: null,
+    priestHref: null,
+    tvHref: null,
+    hasSession: false,
   };
 
   try {
@@ -72,7 +75,8 @@ async function getDemoLinks(): Promise<DemoLinks> {
         ? token
           ? `/padre/${station.id}?token=${token}`
           : `/padre/${station.id}`
-        : "/admin",
+        : null,
+      hasSession: true,
     };
   } catch {
     return fallback;
@@ -112,15 +116,21 @@ export default async function HomePage() {
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center px-6 py-16">
       <Badge variant="secondary" className="w-fit">
-        Ambiente local
+        Desenvolvimento
       </Badge>
       <h1 className="font-heading mt-4 text-4xl leading-tight text-balance">
         Fila de Confissões
       </h1>
       <p className="mt-3 max-w-xl text-lg text-muted-foreground">
-        Sistema de senhas anônimas para paróquias. Admin, fiel, padre e TV
-        funcionam no ambiente local.
+        Sistema de senhas anônimas para paróquias. Entre no admin, crie uma
+        sessão e só então abra fiel, padre e TV.
       </p>
+      {!links.hasSession ? (
+        <p className="mt-4 rounded-lg border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+          Ainda não há sessão no banco. Fiel, sacerdote e telão ficam
+          indisponíveis até você criar e abrir uma sessão no admin.
+        </p>
+      ) : null}
 
       <div className="mt-10 grid gap-4 sm:grid-cols-2">
         {surfaces.map((surface) => (
@@ -130,12 +140,23 @@ export default async function HomePage() {
               <CardDescription>{surface.description}</CardDescription>
             </CardHeader>
             <CardContent>
-              <Link
-                href={surface.href}
-                className={buttonVariants({ variant: "outline" })}
-              >
-                {surface.cta}
-              </Link>
+              {surface.href ? (
+                <Link
+                  href={surface.href}
+                  className={buttonVariants({ variant: "outline" })}
+                >
+                  {surface.cta}
+                </Link>
+              ) : (
+                <span
+                  className={cn(
+                    buttonVariants({ variant: "outline" }),
+                    "pointer-events-none opacity-50",
+                  )}
+                >
+                  Sem sessão
+                </span>
+              )}
             </CardContent>
           </Card>
         ))}

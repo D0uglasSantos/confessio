@@ -33,18 +33,37 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
   const pathname = request.nextUrl.pathname;
-  const isAdminRoute = pathname.startsWith("/admin");
-  const isAdminLogin = pathname.startsWith("/admin/login");
+  const hasAuthCode =
+    request.nextUrl.searchParams.has("code") &&
+    !pathname.startsWith("/auth/callback") &&
+    !pathname.startsWith("/auth/confirm");
 
-  if (isAdminRoute && !isAdminLogin && !user) {
+  if (hasAuthCode) {
     const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/admin/login";
+    redirectUrl.pathname = "/auth/callback";
+    if (!redirectUrl.searchParams.get("next")) {
+      redirectUrl.searchParams.set("next", "/admin/redefinir-senha");
+    }
     return NextResponse.redirect(redirectUrl);
   }
 
-  if (isAdminLogin && user) {
+  const isAdminRoute = pathname.startsWith("/admin");
+  const isPublicAdminAuth =
+    pathname.startsWith("/admin/login") ||
+    pathname.startsWith("/admin/esqueci-senha") ||
+    pathname.startsWith("/admin/redefinir-senha");
+
+  if (isAdminRoute && !isPublicAdminAuth && !user) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = "/admin/login";
+    redirectUrl.search = "";
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  if (pathname.startsWith("/admin/login") && user) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/admin";
+    redirectUrl.search = "";
     return NextResponse.redirect(redirectUrl);
   }
 
