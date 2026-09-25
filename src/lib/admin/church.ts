@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { createAdminClient } from "@/lib/supabase/admin";
+import { tryCreateAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 function isNextRedirect(error: unknown) {
@@ -24,7 +24,7 @@ export async function requireAdminChurch() {
       redirect("/admin/login");
     }
 
-    const admin = createAdminClient();
+    const admin = tryCreateAdminClient() ?? supabase;
     const { data: membership } = await admin
       .from("church_admins")
       .select("church_id")
