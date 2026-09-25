@@ -1,0 +1,29 @@
+---
+description: Diretrizes de produto, privacidade, arquitetura e UI da fila de confissões
+alwaysApply: true
+---
+
+# Sistema
+
+Fonte: `docs/diretrizes`. Spec: `docs/DATABASE.md`.
+
+## Produto
+
+Fila, senhas e confessionários. Fiel sem conta e sem PII. Uma fila por sessão; o fiel não escolhe o padre. Auth só em `/admin`. Nunca armazenar conteúdo da confissão.
+
+## Privacidade
+
+- `public_code` é público. `anonymous_token` e `access_token` são privados, fora do Realtime.
+- Não autorizar com `publicCode` do cliente.
+- Sem `select`/`update` direto em `tickets` no frontend. Sempre RPC.
+- Service role só no server. Nunca `NEXT_PUBLIC_*` nem Client Component.
+
+## Arquitetura
+
+Concorrência no PostgreSQL, não no cliente. `call_next_ticket` com `FOR UPDATE SKIP LOCKED`. Realtime só invalida; o cliente refetcha a RPC.
+
+## UI
+
+Fiel e padre: mobile-first. TV: landscape em `vw`/`vmin`. Admin: desktop-first.
+
+Debounce ~200ms, ignorar refetch stale, refetch no `SUBSCRIBED`, lock anti double-tap, confirmar no-show e finalizar. Erros em `src/lib/queue/errors.ts`.
