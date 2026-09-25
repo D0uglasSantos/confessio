@@ -5,7 +5,15 @@ import { getSupabasePublicEnv } from "@/lib/supabase/env";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
-  const { url, anonKey } = getSupabasePublicEnv();
+
+  let url: string;
+  let anonKey: string;
+
+  try {
+    ({ url, anonKey } = getSupabasePublicEnv());
+  } catch {
+    return supabaseResponse;
+  }
 
   const supabase = createServerClient(url, anonKey, {
     cookies: {
