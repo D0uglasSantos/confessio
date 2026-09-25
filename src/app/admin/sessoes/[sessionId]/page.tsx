@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 
 import { AddStationForm } from "@/components/admin/add-station-form";
+import { formatAdminDayTime, formatAdminTime } from "@/lib/admin/format";
 import { AdminSessionRealtime } from "@/components/admin/admin-session-realtime";
 import { PrintTicketBatchForm } from "@/components/admin/print-ticket-batch-form";
 import { QrCodeCard } from "@/components/admin/qr-code-card";
@@ -111,7 +110,7 @@ export default async function AdminSessionPage({
           <p className="mt-2 text-muted-foreground">
             Prefixo {session.ticket_prefix} · /s/{session.slug}
             {session.starts_at
-              ? ` · ${format(new Date(session.starts_at), "dd/MM HH:mm", { locale: ptBR })}`
+              ? ` · ${formatAdminDayTime(session.starts_at)}`
               : null}
           </p>
         </div>
@@ -318,15 +317,11 @@ export default async function AdminSessionPage({
                         {ticketStatusLabel[ticket.status]}
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">
-                        {format(new Date(ticket.created_at), "HH:mm", {
-                          locale: ptBR,
-                        })}
+                        {formatAdminTime(ticket.created_at)}
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">
                         {ticket.called_at
-                          ? format(new Date(ticket.called_at), "HH:mm", {
-                              locale: ptBR,
-                            })
+                          ? formatAdminTime(ticket.called_at)
                           : "—"}
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">

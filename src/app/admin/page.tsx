@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 
 import { CreateSessionForm } from "@/components/admin/create-session-form";
+import { formatAdminDateTime } from "@/lib/admin/format";
 import { SignOutButton } from "@/components/admin/sign-out-button";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -57,7 +56,7 @@ export default async function AdminPage() {
                     <CardDescription>
                       /s/{session.slug}
                       {session.starts_at
-                        ? ` · ${format(new Date(session.starts_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}`
+                        ? ` · ${formatAdminDateTime(session.starts_at)}`
                         : null}
                     </CardDescription>
                   </div>

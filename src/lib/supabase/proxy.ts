@@ -38,8 +38,13 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  const { data } = await supabase.auth.getClaims();
-  const user = data?.claims;
+  let user: { sub?: string } | undefined;
+  try {
+    const { data } = await supabase.auth.getClaims();
+    user = data?.claims;
+  } catch {
+    return supabaseResponse;
+  }
   const pathname = request.nextUrl.pathname;
   const hasAuthCode =
     request.nextUrl.searchParams.has("code") &&
