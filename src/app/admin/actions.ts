@@ -35,56 +35,26 @@ export async function signInAdmin(
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
 
-  if (!email || !password) {
-    return { ok: false, message: "Informe e-mail e senha." };
-  }
+  try {
+    const { adminSignInMessage } = await import(
+      "@/lib/admin/sign-in-messages"
+    );
+    const { signInAdminWithPassword } = await import("@/lib/admin/sign-in");
+    const { createClient } = await import("@/lib/supabase/server");
+    const supabase = await createClient();
+    const result = await signInAdminWithPassword(supabase, email, password);
 
-  const { createClient } = await import("@/lib/supabase/server");
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-
-  if (error) {
-    if (error.code === "email_not_confirmed") {
-      return {
-        ok: false,
-        message: "Confirme o e-mail deste usuário no painel de Auth do Supabase.",
-      };
+    if (!result.ok) {
+      return { ok: false, message: adminSignInMessage(result.code) };
     }
 
+    return { ok: true };
+  } catch {
     return {
       ok: false,
-      message: "Credenciais inválidas. Use Esqueci a senha se não lembrar.",
+      message: "Não foi possível entrar agora. Tente de novo em instantes.",
     };
   }
-
-  if (data.user) {
-    try {
-      const { tryCreateAdminClient } = await import("@/lib/supabase/admin");
-      const admin = tryCreateAdminClient();
-      if (admin) {
-        const { data: membership } = await admin
-          .from("church_admins")
-          .select("church_id")
-          .eq("user_id", data.user.id)
-          .maybeSingle();
-
-        if (!membership) {
-          await supabase.auth.signOut();
-          return {
-            ok: false,
-            message: "Este usuário não é administrador da paróquia.",
-          };
-        }
-      }
-    } catch {
-      // O painel confirma o vínculo. Não derruba o login.
-    }
-  }
-
-  return { ok: true };
 }
 
 export async function requestPasswordReset(

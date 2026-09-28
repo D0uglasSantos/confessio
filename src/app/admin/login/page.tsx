@@ -29,17 +29,7 @@ export default async function AdminLoginPage({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {params.error === "reset-link" ? (
-            <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-              O link de recuperação expirou ou é inválido. Peça outro em
-              Esqueci a senha.
-            </p>
-          ) : null}
-          <LoginForm
-            errorHint={
-              params.error === "sem-permissao" ? "sem-permissao" : undefined
-            }
-          />
+          <LoginForm errorHint={params.error} />
           <Link
             href="/"
             className="block text-sm text-muted-foreground underline-offset-4 hover:underline"
