@@ -77,7 +77,10 @@ export function TvBoardClient({ slug }: { slug: string }) {
             <p className="tv-hero-station">{called.name}</p>
             <p
               key={`${called.current_public_code}-${called.status}`}
-              className="font-heading tv-hero-code tv-call-pop text-primary"
+              className={cn(
+                "font-heading tv-hero-code",
+                called.status === "CALLING" ? "tv-call-pop" : "text-primary",
+              )}
             >
               {called.current_public_code}
             </p>
@@ -117,7 +120,12 @@ export function TvBoardClient({ slug }: { slug: string }) {
                   {stationStatusLabel[station.status]}
                 </span>
               </div>
-              <p className="font-heading tv-station-code">
+              <p
+                className={cn(
+                  "font-heading tv-station-code",
+                  station.status === "CALLING" && "tv-station-code-call",
+                )}
+              >
                 {station.current_public_code ?? "—"}
               </p>
               {station.priest_name ? (
