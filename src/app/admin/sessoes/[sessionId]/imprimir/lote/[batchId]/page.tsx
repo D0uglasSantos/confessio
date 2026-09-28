@@ -23,11 +23,7 @@ export default async function BatchPrintPage({ params }: BatchPrintPageProps) {
 
   const batch = parsePrintBatch(data);
 
-  if (
-    !batch ||
-    batch.sessionId !== sessionId ||
-    batch.tickets.length === 0
-  ) {
+  if (!batch || batch.sessionId !== sessionId || batch.tickets.length === 0) {
     notFound();
   }
 

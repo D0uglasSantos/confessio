@@ -1,102 +1,162 @@
 import Link from "next/link";
-import { LayoutDashboard, QrCode, ShieldCheck, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  Building2,
+  CircleCheck,
+  LayoutDashboard,
+  LockKeyhole,
+  QrCode,
+  Radio,
+  Sparkles,
+} from "lucide-react";
 
+import { BrandMark } from "@/components/brand-mark";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 
 const trustPoints = [
   {
-    icon: ShieldCheck,
-    title: "Fiel sempre anônimo",
+    icon: LockKeyhole,
+    title: "Privacidade por princípio",
     description:
-      "Nenhum nome, telefone ou dado pessoal é solicitado para entrar na fila.",
+      "O fiel entra sem nome, telefone, e-mail ou qualquer identificação pessoal.",
   },
   {
-    icon: Sparkles,
-    title: "Fila em tempo real",
+    icon: Radio,
+    title: "Tudo em tempo real",
     description:
-      "Senha, telão e painel do sacerdote sincronizados a cada chamada.",
+      "Senha, telão e painel do sacerdote acompanham a mesma fila, sem desencontro.",
   },
   {
-    icon: LayoutDashboard,
-    title: "Várias paróquias, dados isolados",
+    icon: Building2,
+    title: "Feito para paróquias",
     description:
-      "Cada secretaria opera só a sua paróquia. A plataforma governa o cadastro.",
+      "Cada comunidade cuida das próprias sessões; a plataforma mantém a operação organizada.",
   },
 ] as const;
 
 const arrivalPoints = [
   {
+    number: "01",
     icon: QrCode,
     audience: "Fiel",
-    title: "Entra pelo QR da sessão",
+    title: "Aponte a câmera",
     description:
-      "Sem login. A secretaria imprime o cartaz; o fiel aponta a câmera e recebe a senha.",
+      "O QR da sessão abre a fila no celular. Sem conta e sem cadastro pessoal.",
   },
   {
-    icon: QrCode,
+    number: "02",
+    icon: Sparkles,
     audience: "Sacerdote",
-    title: "Entra pelo QR da mesa",
+    title: "Chame a próxima senha",
     description:
-      "Sem conta. Cada confessionário tem um cartão com o link operacional daquele posto.",
+      "Cada confessionário recebe um acesso próprio para conduzir o atendimento.",
   },
   {
+    number: "03",
     icon: LayoutDashboard,
-    audience: "Telão",
-    title: "Abre a partir da secretaria",
+    audience: "Comunidade",
+    title: "Acompanhe no telão",
     description:
-      "A TV da sessão é um link público daquela fila, aberto no computador da igreja.",
+      "As chamadas aparecem em tempo real, com clareza para quem está aguardando.",
   },
 ] as const;
 
 export default function HomePage() {
   return (
     <main className="flex flex-1 flex-col">
-      <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-6 py-14 sm:py-20">
+      <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-5 py-6 sm:px-8 sm:py-8">
         <header className="flex items-center justify-between gap-4">
-          <span className="font-heading text-lg font-medium">
-            Fila de Confissões
-          </span>
+          <BrandMark />
           <Link
             href="/admin/login"
-            className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+            className={buttonVariants({ variant: "outline", size: "lg" })}
           >
-            Entrar na administração
+            Administração
           </Link>
         </header>
 
-        <section className="mt-12 max-w-2xl sm:mt-16">
-          <Badge variant="secondary" className="w-fit">
-            Para paróquias
-          </Badge>
-          <h1 className="font-heading mt-4 text-4xl leading-tight text-balance sm:text-5xl">
-            Fila de confissões organizada, anônima e em tempo real
-          </h1>
-          <p className="mt-4 max-w-xl text-lg text-muted-foreground">
-            A secretaria abre a sessão. Os fiéis entram pelo QR Code. Cada
-            confessionário chama a próxima senha — sem fila física e sem
-            identificar quem está confessando.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/admin/login" className={buttonVariants({ size: "lg" })}>
-              Entrar na administração
-            </Link>
+        <section className="grid items-center gap-12 py-16 lg:grid-cols-[1.08fr_0.92fr] lg:gap-20 lg:py-24">
+          <div>
+            <Badge variant="secondary" className="h-7 px-3 text-xs">
+              Tecnologia a serviço do acolhimento
+            </Badge>
+            <h1 className="font-heading mt-6 max-w-[13ch] text-5xl leading-[0.98] font-semibold tracking-[-0.035em] text-balance sm:text-6xl lg:text-[4.5rem]">
+              Menos espera. Mais serenidade.
+            </h1>
+            <p className="text-muted-foreground mt-6 max-w-xl text-lg leading-8 sm:text-xl">
+              Uma fila de confissões anônima e em tempo real para a paróquia
+              acolher melhor — do primeiro QR Code à chamada no telão.
+            </p>
+            <div className="mt-8 flex flex-wrap items-center gap-4">
+              <Link
+                href="/admin/login"
+                className={buttonVariants({ size: "lg" })}
+              >
+                Entrar na administração
+                <ArrowRight aria-hidden="true" />
+              </Link>
+              <span className="text-muted-foreground inline-flex items-center gap-2 text-sm">
+                <CircleCheck className="text-brand-sage size-4" />
+                Fiel e sacerdote não criam conta
+              </span>
+            </div>
           </div>
-          <p className="mt-3 max-w-xl text-sm text-muted-foreground">
-            Login só para secretaria da paróquia e para a administração da
-            plataforma. Fiel e sacerdote não criam conta.
-          </p>
+
+          <div className="brand-panel ring-primary/15 rounded-[2rem] p-5 shadow-[0_36px_80px_-54px_rgba(54,33,62,0.75)] ring-1 sm:p-8">
+            <div className="relative z-10">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="brand-kicker">Sessão em andamento</p>
+                  <p className="font-heading mt-2 text-2xl font-semibold">
+                    Confissões da tarde
+                  </p>
+                </div>
+                <span className="bg-accent text-accent-foreground inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold">
+                  <span className="bg-brand-sage size-2 rounded-full" />
+                  Ao vivo
+                </span>
+              </div>
+
+              <div className="bg-primary text-primary-foreground shadow-primary/15 mt-8 rounded-3xl px-6 py-8 text-center shadow-xl">
+                <p className="text-primary-foreground/70 text-sm">
+                  Dirija-se ao Confessionário 2
+                </p>
+                <p className="font-heading mt-3 text-7xl leading-none font-semibold tracking-[-0.04em] sm:text-8xl">
+                  A-042
+                </p>
+                <p className="text-brand-gold-light mt-4 text-sm font-medium">
+                  Sua vez chegou
+                </p>
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-4">
+                <div className="bg-muted/75 rounded-2xl p-4">
+                  <p className="text-muted-foreground text-xs font-medium">
+                    Aguardando
+                  </p>
+                  <p className="font-heading mt-1 text-3xl font-semibold">12</p>
+                </div>
+                <div className="bg-muted/75 rounded-2xl p-4">
+                  <p className="text-muted-foreground text-xs font-medium">
+                    Confessionários
+                  </p>
+                  <p className="font-heading mt-1 text-3xl font-semibold">3</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </section>
 
-        <section className="mt-12 grid gap-4 sm:grid-cols-3">
+        <section className="border-border/80 grid gap-4 border-y py-8 sm:grid-cols-3">
           {trustPoints.map(({ icon: Icon, title, description }) => (
-            <div key={title} className="flex gap-3">
-              <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <Icon className="size-4" />
+            <div key={title} className="flex gap-4 pr-4">
+              <span className="bg-primary/10 text-primary flex size-11 shrink-0 items-center justify-center rounded-2xl">
+                <Icon className="size-5" />
               </span>
               <div>
-                <p className="font-medium">{title}</p>
-                <p className="mt-0.5 text-sm text-muted-foreground">
+                <p className="font-semibold">{title}</p>
+                <p className="text-muted-foreground mt-1 text-sm leading-6">
                   {description}
                 </p>
               </div>
@@ -104,35 +164,50 @@ export default function HomePage() {
           ))}
         </section>
 
-        <section className="mt-14 space-y-4">
-          <div>
-            <h2 className="font-heading text-2xl">Como cada pessoa chega</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              A home não escolhe a sessão. Cada paróquia opera a sua própria
-              fila, pelos links gerados no painel.
+        <section className="py-16 sm:py-20">
+          <div className="max-w-2xl">
+            <p className="brand-kicker">Um caminho simples</p>
+            <h2 className="font-heading mt-3 text-3xl font-semibold tracking-[-0.02em] sm:text-4xl">
+              Cada pessoa vê apenas o que precisa
+            </h2>
+            <p className="text-muted-foreground mt-3">
+              A secretaria prepara a sessão; os outros acessos chegam pelos QR
+              Codes e links daquele encontro.
             </p>
           </div>
-          <div className="grid gap-4 sm:grid-cols-3">
-            {arrivalPoints.map((point) => (
-              <div
-                key={point.title}
-                className="rounded-xl bg-card p-4 ring-1 ring-foreground/10"
-              >
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  {point.audience}
-                </p>
-                <p className="mt-2 font-medium">{point.title}</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {point.description}
-                </p>
-              </div>
-            ))}
+
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {arrivalPoints.map(
+              ({ number, icon: Icon, audience, title, description }) => (
+                <article
+                  key={title}
+                  className="brand-panel ring-foreground/10 rounded-2xl p-6 ring-1"
+                >
+                  <div className="relative z-10 flex items-center justify-between">
+                    <span className="font-heading text-primary text-sm font-semibold">
+                      {number}
+                    </span>
+                    <Icon className="text-primary size-5" />
+                  </div>
+                  <p className="brand-kicker relative z-10 mt-10">{audience}</p>
+                  <h3 className="font-heading relative z-10 mt-2 text-2xl font-semibold">
+                    {title}
+                  </h3>
+                  <p className="text-muted-foreground relative z-10 mt-3 text-sm leading-6">
+                    {description}
+                  </p>
+                </article>
+              ),
+            )}
           </div>
         </section>
 
-        <footer className="mt-16 border-t pt-6 text-sm text-muted-foreground">
-          Nenhum dado da confissão é armazenado. O fiel nunca precisa criar
-          conta ou se identificar.
+        <footer className="border-border/80 text-muted-foreground flex flex-col gap-4 border-t py-8 text-sm sm:flex-row sm:items-center sm:justify-between">
+          <BrandMark className="text-primary" />
+          <p className="max-w-xl sm:text-right">
+            A plataforma administra somente o fluxo. Nenhum conteúdo da
+            confissão ou dado pessoal do fiel é armazenado.
+          </p>
         </footer>
       </div>
     </main>

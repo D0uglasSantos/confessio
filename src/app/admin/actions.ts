@@ -20,13 +20,19 @@ function toIsoDateTime(localValue: string) {
   return date.toISOString();
 }
 
+function revalidateParishAdmin(sessionId?: string) {
+  revalidatePath("/admin");
+  revalidatePath("/admin/sessoes");
+  if (sessionId) {
+    revalidatePath(`/admin/sessoes/${sessionId}`);
+  }
+}
+
 export type ActionResult =
-  | { ok: true; message?: string }
-  | { ok: false; message: string };
+  { ok: true; message?: string } | { ok: false; message: string };
 
 export type CreateSessionResult =
-  | { ok: true; sessionId: string }
-  | { ok: false; message: string };
+  { ok: true; sessionId: string } | { ok: false; message: string };
 
 export async function signInAdmin(
   _prev: ActionResult | null,
@@ -36,9 +42,7 @@ export async function signInAdmin(
   const password = String(formData.get("password") ?? "");
 
   try {
-    const { adminSignInMessage } = await import(
-      "@/lib/admin/sign-in-messages"
-    );
+    const { adminSignInMessage } = await import("@/lib/admin/sign-in-messages");
     const { signInAdminWithPassword } = await import("@/lib/admin/sign-in");
     const { createClient } = await import("@/lib/supabase/server");
     const supabase = await createClient();
@@ -96,7 +100,10 @@ export async function updateAdminPassword(
   const confirm = String(formData.get("confirm") ?? "");
 
   if (password.length < 8) {
-    return { ok: false, message: "A senha precisa ter pelo menos 8 caracteres." };
+    return {
+      ok: false,
+      message: "A senha precisa ter pelo menos 8 caracteres.",
+    };
   }
 
   if (password !== confirm) {
@@ -227,12 +234,13 @@ export async function createSessionAction(
     };
   }
 
-  revalidatePath("/admin");
-  revalidatePath(`/admin/sessoes/${session.id}`);
+  revalidateParishAdmin(session.id);
   return { ok: true, sessionId: session.id };
 }
 
-export async function openSessionAction(sessionId: string): Promise<ActionResult> {
+export async function openSessionAction(
+  sessionId: string,
+): Promise<ActionResult> {
   const { supabase, church } = await requireAdminChurch();
 
   const { data: session } = await supabase
@@ -270,12 +278,13 @@ export async function openSessionAction(sessionId: string): Promise<ActionResult
     .eq("session_id", sessionId)
     .eq("status", "OFFLINE");
 
-  revalidatePath("/admin");
-  revalidatePath(`/admin/sessoes/${sessionId}`);
+  revalidateParishAdmin(sessionId);
   return { ok: true, message: "Fila aberta." };
 }
 
-export async function closeEntryAction(sessionId: string): Promise<ActionResult> {
+export async function closeEntryAction(
+  sessionId: string,
+): Promise<ActionResult> {
   const { supabase, church } = await requireAdminChurch();
 
   const { data: session } = await supabase
@@ -289,7 +298,10 @@ export async function closeEntryAction(sessionId: string): Promise<ActionResult>
   }
 
   if (session.status !== "OPEN") {
-    return { ok: false, message: "A entrada só pode ser encerrada com a fila aberta." };
+    return {
+      ok: false,
+      message: "A entrada só pode ser encerrada com a fila aberta.",
+    };
   }
 
   const { error } = await supabase
@@ -310,8 +322,7 @@ export async function closeEntryAction(sessionId: string): Promise<ActionResult>
     };
   }
 
-  revalidatePath("/admin");
-  revalidatePath(`/admin/sessoes/${sessionId}`);
+  revalidateParishAdmin(sessionId);
   return { ok: true, message: "Entrada encerrada." };
 }
 
@@ -332,7 +343,10 @@ export async function finishSessionAction(
   }
 
   if (session.status !== "ENTRY_CLOSED" && session.status !== "OPEN") {
-    return { ok: false, message: "Sessão não pode ser finalizada neste estado." };
+    return {
+      ok: false,
+      message: "Sessão não pode ser finalizada neste estado.",
+    };
   }
 
   const { count } = await supabase
@@ -376,8 +390,7 @@ export async function finishSessionAction(
     .update({ status: "OFFLINE" })
     .eq("session_id", sessionId);
 
-  revalidatePath("/admin");
-  revalidatePath(`/admin/sessoes/${sessionId}`);
+  revalidateParishAdmin(sessionId);
   return { ok: true, message: "Sessão encerrada." };
 }
 
@@ -412,16 +425,20 @@ export async function addStationAction(
   }
 
   if (session.status === "FINISHED" || session.status === "CANCELLED") {
-    return { ok: false, message: "Não é possível adicionar confessionários nesta sessão." };
+    return {
+      ok: false,
+      message: "Não é possível adicionar confessionários nesta sessão.",
+    };
   }
 
   const { error } = await supabase.from("stations").insert({
     session_id: sessionId,
     name,
     priest_name: priestName || null,
-    status: session.status === "OPEN" || session.status === "ENTRY_CLOSED"
-      ? "AVAILABLE"
-      : "OFFLINE",
+    status:
+      session.status === "OPEN" || session.status === "ENTRY_CLOSED"
+        ? "AVAILABLE"
+        : "OFFLINE",
   });
 
   if (error) {
@@ -434,7 +451,7 @@ export async function addStationAction(
     };
   }
 
-  revalidatePath(`/admin/sessoes/${sessionId}`);
+  revalidateParishAdmin(sessionId);
   return { ok: true, message: "Confessionário adicionado." };
 }
 
@@ -474,8 +491,7 @@ export async function toggleWaitingQueueOnTvAction(
 }
 
 export type IssuePaperTicketsResult =
-  | { ok: true; batchId: string }
-  | { ok: false; message: string };
+  { ok: true; batchId: string } | { ok: false; message: string };
 
 export async function issuePaperTicketsAction(
   sessionId: string,

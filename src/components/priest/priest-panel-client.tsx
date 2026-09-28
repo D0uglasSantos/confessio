@@ -1,5 +1,6 @@
 "use client";
 
+import { BrandMark } from "@/components/brand-mark";
 import { MobileShell } from "@/components/mobile-shell";
 import { PriestActions } from "@/components/priest/priest-actions";
 import { Badge } from "@/components/ui/badge";
@@ -33,7 +34,7 @@ export function PriestPanelClient({
     return (
       <MobileShell className="justify-center">
         <Card className="border-0 shadow-none sm:border sm:shadow-sm">
-          <CardContent className="py-12 text-center text-muted-foreground">
+          <CardContent className="text-muted-foreground py-12 text-center">
             Carregando confessionário...
           </CardContent>
         </Card>
@@ -65,6 +66,7 @@ export function PriestPanelClient({
     <MobileShell className="gap-4 py-3">
       <Card className="flex min-h-0 flex-1 flex-col border-0 shadow-none sm:border sm:shadow-sm">
         <CardHeader className="shrink-0 space-y-3 px-1 sm:px-6">
+          <BrandMark className="text-primary mb-2" />
           <div className="flex flex-wrap gap-2">
             <Badge variant="secondary">
               {stationStatusLabel[station.status]}
@@ -81,32 +83,32 @@ export function PriestPanelClient({
               ? station.priest_name
               : "Confessionário sem nome do sacerdote"}
           </CardDescription>
-          <p className="text-sm text-muted-foreground">{session.name}</p>
+          <p className="text-muted-foreground text-sm">{session.name}</p>
         </CardHeader>
 
         <CardContent className="flex flex-1 flex-col gap-5 px-1 sm:px-6">
-          <div className="rounded-2xl bg-muted/60 px-4 py-6 text-center">
+          <div className="bg-muted/60 rounded-2xl px-4 py-6 text-center">
             {ticket ? (
               <>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-muted-foreground text-sm">
                   {ticketStatusLabel[ticket.status]}
                 </p>
                 <p className="font-heading mt-2 text-[clamp(3.25rem,16vw,5rem)] leading-none tracking-tight">
                   {ticket.public_code}
                 </p>
                 {ticket.recall_count > 0 ? (
-                  <p className="mt-3 text-sm text-muted-foreground">
+                  <p className="text-muted-foreground mt-3 text-sm">
                     Rechamadas: {ticket.recall_count}
                   </p>
                 ) : null}
               </>
             ) : (
               <>
-                <p className="text-sm text-muted-foreground">Senha atual</p>
-                <p className="font-heading mt-2 text-4xl text-muted-foreground">
+                <p className="text-muted-foreground text-sm">Senha atual</p>
+                <p className="font-heading text-muted-foreground mt-2 text-4xl">
                   —
                 </p>
-                <p className="mt-3 text-sm text-muted-foreground">
+                <p className="text-muted-foreground mt-3 text-sm">
                   {waiting_count === 0
                     ? "Ninguém aguardando"
                     : `${waiting_count} pessoa${waiting_count === 1 ? "" : "s"} na fila`}
@@ -115,7 +117,7 @@ export function PriestPanelClient({
             )}
           </div>
 
-          <div className="mt-auto sticky bottom-0 bg-background/95 pt-2 pb-[max(0.25rem,env(safe-area-inset-bottom))] backdrop-blur-sm">
+          <div className="bg-background/95 sticky bottom-0 mt-auto pt-2 pb-[max(0.25rem,env(safe-area-inset-bottom))] backdrop-blur-sm">
             <PriestActions
               stationId={stationId}
               accessToken={accessToken}

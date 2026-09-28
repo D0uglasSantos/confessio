@@ -1,13 +1,16 @@
+import Link from "next/link";
+
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { formatAdminDateTime } from "@/lib/admin/format";
 
-type AuditLogEntry = {
+export type AuditLogEntry = {
   id: string;
   action: string;
   target_type: string;
@@ -46,45 +49,61 @@ function describeMetadata(action: string, metadata: unknown) {
   return null;
 }
 
-export function AuditLogList({ entries }: { entries: AuditLogEntry[] }) {
+export function AuditLogList({
+  entries,
+  showViewAll = false,
+}: {
+  entries: AuditLogEntry[];
+  showViewAll?: boolean;
+}) {
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
-        <CardTitle className="text-base">Atividade recente</CardTitle>
+        <CardTitle>Atividade recente</CardTitle>
         <CardDescription>
-          Ações administrativas de plataforma. Nunca inclui dados de fiéis ou
-          conteúdo de confissão.
+          Ações da plataforma. Nunca inclui dados de fiéis ou conteúdo de
+          confissão.
         </CardDescription>
       </CardHeader>
       <CardContent>
         {entries.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Nenhuma ação registrada ainda.
           </p>
         ) : (
-          <ul className="space-y-3">
+          <ol>
             {entries.map((entry) => {
               const detail = describeMetadata(entry.action, entry.metadata);
               return (
                 <li
                   key={entry.id}
-                  className="flex flex-wrap items-baseline justify-between gap-2 border-b pb-2 text-sm last:border-0 last:pb-0"
+                  className="before:bg-primary/50 after:bg-border relative border-b py-2.5 pl-5 before:absolute before:top-3.5 before:left-0 before:size-2 before:rounded-full after:absolute after:top-6 after:bottom-0 after:left-[0.1875rem] after:w-px last:border-0 last:after:hidden"
                 >
-                  <span>
+                  <p className="text-sm">
                     {actionLabel[entry.action] ?? entry.action}
                     {detail ? (
                       <span className="text-muted-foreground"> — {detail}</span>
                     ) : null}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
+                  </p>
+                  <p className="text-muted-foreground mt-0.5 text-xs">
                     {formatAdminDateTime(entry.created_at)}
-                  </span>
+                  </p>
                 </li>
               );
             })}
-          </ul>
+          </ol>
         )}
       </CardContent>
+      {showViewAll ? (
+        <CardFooter>
+          <Link
+            href="/admin/global/atividade"
+            className="text-muted-foreground hover:text-foreground text-sm underline-offset-4 hover:underline"
+          >
+            Ver toda a atividade
+          </Link>
+        </CardFooter>
+      ) : null}
     </Card>
   );
 }

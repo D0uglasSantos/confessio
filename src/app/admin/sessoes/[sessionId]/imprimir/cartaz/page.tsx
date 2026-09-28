@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { BrandMark } from "@/components/brand-mark";
 import { PrintAuto, PrintToolbar } from "@/components/print/print-toolbar";
 import { requireAdminChurch } from "@/lib/admin/church";
 import { sessionPublicUrl } from "@/lib/app-url";
@@ -34,6 +35,7 @@ export default async function SessionPosterPage({ params }: CartazPageProps) {
       <PrintToolbar backHref={backHref} />
 
       <article className="print-poster-sheet">
+        <BrandMark compact className="print-brand-mark" />
         <p className="print-kicker">{church.name}</p>
         <h1 className="font-heading print-poster-title">{session.name}</h1>
         <p className="print-poster-lead">

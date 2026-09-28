@@ -17,6 +17,18 @@ export function formatAdminDateTime(value: string) {
   });
 }
 
+export function formatAdminDate(value: string) {
+  return formatDateTime(value, {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
+export function formatCount(value: number) {
+  return new Intl.NumberFormat("pt-BR").format(value);
+}
+
 export function formatAdminDayTime(value: string) {
   return formatDateTime(value, {
     day: "2-digit",

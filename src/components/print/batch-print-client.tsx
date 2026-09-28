@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { BrandMark } from "@/components/brand-mark";
 import { PrintToolbar } from "@/components/print/print-toolbar";
 import { toQrDataUrl } from "@/lib/qr";
 
@@ -78,6 +79,7 @@ export function BatchPrintClient({
         <section key={pageIndex} className="print-batch-page">
           {page.map((ticket) => (
             <article key={ticket.publicCode} className="print-batch-slip">
+              <BrandMark compact className="print-brand-mark" />
               <p className="print-kicker">{churchName}</p>
               <p className="print-batch-session">{sessionName}</p>
               <p className="print-ticket-label">Sua senha</p>

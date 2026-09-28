@@ -1,3 +1,5 @@
+import { BrandMark } from "@/components/brand-mark";
+
 export function StationDeskCard({
   churchName,
   sessionName,
@@ -14,7 +16,10 @@ export function StationDeskCard({
   size?: "sheet" | "half";
 }) {
   return (
-    <article className={size === "half" ? "print-station-half" : "print-station-sheet"}>
+    <article
+      className={size === "half" ? "print-station-half" : "print-station-sheet"}
+    >
+      <BrandMark compact className="print-brand-mark" />
       <p className="print-kicker">{churchName}</p>
       <p className="print-station-session">{sessionName}</p>
       <p className="print-station-label">Painel do sacerdote</p>

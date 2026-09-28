@@ -72,7 +72,10 @@ export default async function StationCardsPage({
       <PrintToolbar backHref={`/admin/sessoes/${session.id}`} />
 
       {chunk(cards, 2).map((page) => (
-        <section key={page.map((card) => card.id).join("-")} className="print-station-page">
+        <section
+          key={page.map((card) => card.id).join("-")}
+          className="print-station-page"
+        >
           {page.map((card) => (
             <StationDeskCard
               key={card.id}

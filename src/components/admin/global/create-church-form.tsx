@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -14,18 +14,26 @@ import { Label } from "@/components/ui/label";
 
 const initialState: CreateChurchResult | null = null;
 
-export function CreateChurchForm() {
+export function CreateChurchForm({ onSuccess }: { onSuccess?: () => void }) {
   const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
+  const onSuccessRef = useRef(onSuccess);
   const [state, formAction, pending] = useActionState(
     createChurchAction,
     initialState,
   );
 
   useEffect(() => {
+    onSuccessRef.current = onSuccess;
+  }, [onSuccess]);
+
+  useEffect(() => {
     if (!state) return;
 
     if (state.ok) {
       toast.success("Paróquia cadastrada.");
+      formRef.current?.reset();
+      onSuccessRef.current?.();
       router.refresh();
     } else {
       toast.error(state.message);
@@ -33,7 +41,7 @@ export function CreateChurchForm() {
   }, [router, state]);
 
   return (
-    <form action={formAction} className="grid gap-4 sm:grid-cols-3">
+    <form ref={formRef} action={formAction} className="grid gap-4">
       <div className="space-y-2">
         <Label htmlFor="church-name">Nome da paróquia</Label>
         <Input
@@ -51,6 +59,9 @@ export function CreateChurchForm() {
           placeholder="nossa-senhora-de-fatima"
           required
         />
+        <p className="text-muted-foreground text-xs">
+          Identifica a paróquia nas rotas públicas.
+        </p>
       </div>
       <div className="space-y-2">
         <Label htmlFor="church-logo">Logo (URL, opcional)</Label>
@@ -61,11 +72,9 @@ export function CreateChurchForm() {
           placeholder="https://..."
         />
       </div>
-      <div className="sm:col-span-3">
-        <Button type="submit" disabled={pending}>
-          {pending ? "Cadastrando..." : "Cadastrar paróquia"}
-        </Button>
-      </div>
+      <Button type="submit" disabled={pending}>
+        {pending ? "Cadastrando..." : "Cadastrar paróquia"}
+      </Button>
     </form>
   );
 }
