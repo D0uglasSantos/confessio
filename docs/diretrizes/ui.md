@@ -6,7 +6,11 @@
 | `/s/[slug]/minha-senha` | Acompanhamento do fiel | Mobile-first |
 | `/padre/[stationId]` | Painel do sacerdote | Mobile-first |
 | `/tv/[sessionSlug]` | Telão | Landscape, tipografia em `vw`/`vmin` (1080p+) |
-| `/admin` e `/admin/sessoes/[sessionId]` | Secretaria | Desktop-first |
+| `/admin` e `/admin/sessoes/[sessionId]` | Secretaria da paróquia | Desktop-first |
+| `/admin/global` | Administração da plataforma | Desktop-first |
+| `/` | Porta institucional (login da secretaria/plataforma) | Desktop-first, também legível no mobile |
+
+A home **não** lança fiel, padre ou TV. Essas superfícies chegam pelos QR/links da sessão.
 
 Fiel e padre: safe areas, botões grandes, tipografia fluida.
 

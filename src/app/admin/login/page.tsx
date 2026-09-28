@@ -24,8 +24,8 @@ export default async function AdminLoginPage({
         <CardHeader>
           <CardTitle className="font-heading text-3xl">Administração</CardTitle>
           <CardDescription>
-            Entre para gerenciar sessões e confessionários. O fiel continua sem
-            login.
+            Login da secretaria da paróquia e da administração da plataforma.
+            Fiel e sacerdote continuam sem conta.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">

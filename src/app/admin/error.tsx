@@ -14,7 +14,7 @@ export default function AdminError({
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-4 px-6 py-12">
       <h1 className="font-heading text-3xl">Não foi possível abrir o admin</h1>
       <p className="text-sm text-muted-foreground">
-        A sessão pode ter sido gravada. Recarregue o painel ou entre de novo.
+        A sessão pode ter expirado. Recarregue o painel ou entre de novo.
       </p>
       <div className="flex flex-wrap gap-3">
         <button
