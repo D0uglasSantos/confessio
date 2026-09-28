@@ -42,9 +42,9 @@ export default async function AdminSessionPage({
   params,
 }: AdminSessionPageProps) {
   const { sessionId } = await params;
-  const { admin, church } = await requireAdminChurch();
+  const { supabase, church } = await requireAdminChurch();
 
-  const { data: session } = await admin
+  const { data: session } = await supabase
     .from("sessions")
     .select(
       "id, name, slug, status, ticket_prefix, starts_at, show_waiting_queue_on_tv, church_id",
@@ -58,13 +58,13 @@ export default async function AdminSessionPage({
 
   const [{ data: stations }, { data: adminStateRaw }, { data: printBatches }] =
     await Promise.all([
-      admin
+      supabase
         .from("stations")
         .select("id, name, priest_name, status, station_access(access_token)")
         .eq("session_id", sessionId)
         .order("name"),
-      admin.rpc("admin_get_session_state", { p_session_id: sessionId }),
-      admin
+      supabase.rpc("admin_get_session_state", { p_session_id: sessionId }),
+      supabase
         .from("paper_print_batches")
         .select(
           "id, ticket_count, first_public_number, last_public_number, created_at",

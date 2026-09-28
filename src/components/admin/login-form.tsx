@@ -2,40 +2,51 @@
 
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useState } from "react";
+import { useState } from "react";
+import { useFormStatus } from "react-dom";
 
-import { signInAdmin, type ActionResult } from "@/app/admin/actions";
+import { adminSignInMessage } from "@/lib/admin/sign-in-messages";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { isLocalSupabase } from "@/lib/supabase/env";
 
-const initialState: ActionResult | null = null;
+const LOGIN_ERRORS: Record<string, string> = {
+  "sem-permissao": adminSignInMessage("forbidden"),
+  "reset-link":
+    "O link de recuperação expirou ou é inválido. Peça outro em Esqueci a senha.",
+  missing: adminSignInMessage("missing"),
+  credentials: adminSignInMessage("credentials"),
+  unconfirmed: adminSignInMessage("unconfirmed"),
+  forbidden: adminSignInMessage("forbidden"),
+  config: adminSignInMessage("config"),
+  unexpected: adminSignInMessage("unexpected"),
+};
 
-export function LoginForm({ errorHint }: { errorHint?: string }) {
-  const router = useRouter();
-  const [state, formAction, pending] = useActionState(signInAdmin, initialState);
-  const [showPassword, setShowPassword] = useState(false);
-  const localDev = isLocalSupabase();
-
-  useEffect(() => {
-    if (!state?.ok) return;
-    router.refresh();
-    router.push("/admin");
-  }, [router, state]);
+function SubmitButton() {
+  const { pending } = useFormStatus();
 
   return (
-    <form action={formAction} className="space-y-4">
-      {(errorHint || (state && !state.ok)) && (
+    <Button type="submit" className="w-full" size="lg" disabled={pending}>
+      {pending ? "Entrando..." : "Entrar"}
+    </Button>
+  );
+}
+
+export function LoginForm({ errorHint }: { errorHint?: string }) {
+  const [showPassword, setShowPassword] = useState(false);
+  const localDev = isLocalSupabase();
+  const errorMessage = errorHint
+    ? (LOGIN_ERRORS[errorHint] ?? LOGIN_ERRORS.unexpected)
+    : null;
+
+  return (
+    <form action="/api/admin/login" method="post" className="space-y-4">
+      {errorMessage ? (
         <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-          {errorHint === "sem-permissao"
-            ? "Este usuário não é administrador da paróquia."
-            : state && !state.ok
-              ? state.message
-              : null}
+          {errorMessage}
         </p>
-      )}
+      ) : null}
 
       <div className="space-y-2">
         <Label htmlFor="email">E-mail</Label>
@@ -76,9 +87,7 @@ export function LoginForm({ errorHint }: { errorHint?: string }) {
         </div>
       </div>
 
-      <Button type="submit" className="w-full" size="lg" disabled={pending}>
-        {pending ? "Entrando..." : "Entrar"}
-      </Button>
+      <SubmitButton />
 
       <p className="text-center text-sm">
         <Link
