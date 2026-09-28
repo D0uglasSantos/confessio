@@ -11,9 +11,9 @@ type BatchPrintPageProps = {
 
 export default async function BatchPrintPage({ params }: BatchPrintPageProps) {
   const { sessionId, batchId } = await params;
-  const { admin, church } = await requireAdminChurch();
+  const { supabase, church } = await requireAdminChurch();
 
-  const { data, error } = await admin.rpc("admin_get_print_batch", {
+  const { data, error } = await supabase.rpc("admin_get_print_batch", {
     p_batch_id: batchId,
   });
 
@@ -31,7 +31,7 @@ export default async function BatchPrintPage({ params }: BatchPrintPageProps) {
     notFound();
   }
 
-  const { data: session } = await admin
+  const { data: session } = await supabase
     .from("sessions")
     .select("id, church_id")
     .eq("id", sessionId)

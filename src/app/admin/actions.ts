@@ -170,7 +170,7 @@ export async function createSessionAction(
     };
   }
 
-  const { admin, church } = await requireAdminChurch();
+  const { supabase, church } = await requireAdminChurch();
   const input = parsed.data;
 
   let startsAt: string;
@@ -183,7 +183,7 @@ export async function createSessionAction(
     return { ok: false, message: "Datas inválidas." };
   }
 
-  const { data: session, error } = await admin
+  const { data: session, error } = await supabase
     .from("sessions")
     .insert({
       church_id: church.id,
@@ -207,7 +207,7 @@ export async function createSessionAction(
     };
   }
 
-  const { error: stationsError } = await admin.from("stations").insert(
+  const { error: stationsError } = await supabase.from("stations").insert(
     input.stations.map((station) => ({
       session_id: session.id,
       name: station.name,
@@ -217,7 +217,7 @@ export async function createSessionAction(
   );
 
   if (stationsError) {
-    await admin.from("sessions").delete().eq("id", session.id);
+    await supabase.from("sessions").delete().eq("id", session.id);
     return {
       ok: false,
       message: stationsError.message ?? "Erro ao criar confessionários.",
@@ -230,9 +230,9 @@ export async function createSessionAction(
 }
 
 export async function openSessionAction(sessionId: string): Promise<ActionResult> {
-  const { admin, church } = await requireAdminChurch();
+  const { supabase, church } = await requireAdminChurch();
 
-  const { data: session } = await admin
+  const { data: session } = await supabase
     .from("sessions")
     .select("id, status, church_id")
     .eq("id", sessionId)
@@ -246,7 +246,7 @@ export async function openSessionAction(sessionId: string): Promise<ActionResult
     return { ok: false, message: "Só é possível abrir sessões em rascunho." };
   }
 
-  const { error } = await admin
+  const { error } = await supabase
     .from("sessions")
     .update({
       status: "OPEN",
@@ -258,7 +258,7 @@ export async function openSessionAction(sessionId: string): Promise<ActionResult
     return { ok: false, message: error.message };
   }
 
-  await admin
+  await supabase
     .from("stations")
     .update({ status: "AVAILABLE" })
     .eq("session_id", sessionId)
@@ -270,9 +270,9 @@ export async function openSessionAction(sessionId: string): Promise<ActionResult
 }
 
 export async function closeEntryAction(sessionId: string): Promise<ActionResult> {
-  const { admin, church } = await requireAdminChurch();
+  const { supabase, church } = await requireAdminChurch();
 
-  const { data: session } = await admin
+  const { data: session } = await supabase
     .from("sessions")
     .select("id, status, church_id")
     .eq("id", sessionId)
@@ -286,7 +286,7 @@ export async function closeEntryAction(sessionId: string): Promise<ActionResult>
     return { ok: false, message: "A entrada só pode ser encerrada com a fila aberta." };
   }
 
-  const { error } = await admin
+  const { error } = await supabase
     .from("sessions")
     .update({
       status: "ENTRY_CLOSED",
@@ -307,9 +307,9 @@ export async function finishSessionAction(
   sessionId: string,
   force = false,
 ): Promise<ActionResult> {
-  const { admin, church } = await requireAdminChurch();
+  const { supabase, church } = await requireAdminChurch();
 
-  const { data: session } = await admin
+  const { data: session } = await supabase
     .from("sessions")
     .select("id, status, church_id")
     .eq("id", sessionId)
@@ -323,7 +323,7 @@ export async function finishSessionAction(
     return { ok: false, message: "Sessão não pode ser finalizada neste estado." };
   }
 
-  const { count } = await admin
+  const { count } = await supabase
     .from("tickets")
     .select("id", { count: "exact", head: true })
     .eq("session_id", sessionId)
@@ -344,7 +344,7 @@ export async function finishSessionAction(
       : {}),
   };
 
-  const { error } = await admin
+  const { error } = await supabase
     .from("sessions")
     .update(payload)
     .eq("id", sessionId);
@@ -353,7 +353,7 @@ export async function finishSessionAction(
     return { ok: false, message: error.message };
   }
 
-  await admin
+  await supabase
     .from("stations")
     .update({ status: "OFFLINE" })
     .eq("session_id", sessionId);
@@ -380,10 +380,10 @@ export async function addStationAction(
     };
   }
 
-  const { admin, church } = await requireAdminChurch();
+  const { supabase, church } = await requireAdminChurch();
   const { sessionId, name, priestName } = parsed.data;
 
-  const { data: session } = await admin
+  const { data: session } = await supabase
     .from("sessions")
     .select("id, status, church_id")
     .eq("id", sessionId)
@@ -397,7 +397,7 @@ export async function addStationAction(
     return { ok: false, message: "Não é possível adicionar confessionários nesta sessão." };
   }
 
-  const { error } = await admin.from("stations").insert({
+  const { error } = await supabase.from("stations").insert({
     session_id: sessionId,
     name,
     priest_name: priestName || null,
@@ -418,9 +418,9 @@ export async function toggleWaitingQueueOnTvAction(
   sessionId: string,
   enabled: boolean,
 ): Promise<ActionResult> {
-  const { admin, church } = await requireAdminChurch();
+  const { supabase, church } = await requireAdminChurch();
 
-  const { data: session } = await admin
+  const { data: session } = await supabase
     .from("sessions")
     .select("id, church_id")
     .eq("id", sessionId)
@@ -430,7 +430,7 @@ export async function toggleWaitingQueueOnTvAction(
     return { ok: false, message: "Sessão não encontrada." };
   }
 
-  const { error } = await admin
+  const { error } = await supabase
     .from("sessions")
     .update({ show_waiting_queue_on_tv: enabled })
     .eq("id", sessionId);
@@ -462,9 +462,9 @@ export async function issuePaperTicketsAction(
     };
   }
 
-  const { admin, church } = await requireAdminChurch();
+  const { supabase, church } = await requireAdminChurch();
 
-  const { data: session } = await admin
+  const { data: session } = await supabase
     .from("sessions")
     .select("id, status, church_id")
     .eq("id", sessionId)
@@ -481,7 +481,7 @@ export async function issuePaperTicketsAction(
     };
   }
 
-  const { data, error } = await admin.rpc("admin_issue_paper_tickets", {
+  const { data, error } = await supabase.rpc("admin_issue_paper_tickets", {
     p_session_id: parsed.data.sessionId,
     p_count: parsed.data.count,
   });
