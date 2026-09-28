@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title description">
-  <title id="title">Símbolo Fila de Confissões</title>
-  <desc id="description">Um portal em arco com três pontos que representam o caminho organizado até o acolhimento.</desc>
-  <path d="M20 78V43c0-18.8 11.7-31 28-31s28 12.2 28 31v35" fill="none" stroke="#4C3158" stroke-width="8" stroke-linecap="round"/>
-  <circle cx="48" cy="67" r="5" fill="#B98A3D"/>
-  <circle cx="48" cy="52" r="5" fill="#B98A3D"/>
-  <circle cx="48" cy="37" r="5" fill="#B98A3D"/>
-</svg>

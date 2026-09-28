@@ -17,6 +17,7 @@ import {
 import { useClaimTicket } from "@/hooks/use-claim-ticket";
 import { usePublicSession } from "@/hooks/use-public-session";
 import { useTicket } from "@/hooks/use-ticket";
+import { APP_NAME } from "@/lib/brand";
 import { countActiveStations } from "@/lib/queue/types";
 import { sessionStatusLabel } from "@/lib/admin/labels";
 
@@ -57,7 +58,7 @@ export function SessionEntryClient({
         <Card className="border-0 shadow-none sm:border sm:shadow-sm">
           <CardHeader className="px-1 sm:px-6">
             <CardTitle className="font-heading text-3xl sm:text-4xl">
-              Confissões
+              {APP_NAME}
             </CardTitle>
             <CardDescription className="text-base">
               {error ?? "Sessão não encontrada ou indisponível."}
@@ -79,7 +80,7 @@ export function SessionEntryClient({
     <MobileShell className="justify-center gap-4 py-4">
       <Card className="w-full border-0 shadow-none sm:border sm:shadow-sm">
         <CardHeader className="space-y-3 px-1 sm:px-6">
-          <BrandMark className="text-primary mb-3" />
+          <BrandMark className="mb-3" />
           <Badge variant="secondary" className="w-fit">
             {sessionStatusLabel[session.status]}
           </Badge>

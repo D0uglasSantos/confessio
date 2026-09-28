@@ -47,7 +47,7 @@ export function TvBoardClient({ slug }: { slug: string }) {
     <main className="tv-shell">
       <header className="tv-header">
         <div className="flex min-w-0 items-center gap-4">
-          <BrandMark compact className="text-primary hidden sm:inline-flex" />
+          <BrandMark compact className="hidden sm:inline-flex" />
           <div className="min-w-0">
             <p className="tv-kicker">{session.church_name}</p>
             <h1 className="font-heading tv-title truncate">{session.name}</h1>

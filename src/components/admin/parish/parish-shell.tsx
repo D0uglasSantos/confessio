@@ -120,7 +120,7 @@ function SidebarContent({
   return (
     <>
       <div className="flex items-center gap-3 px-4 py-5">
-        <BrandMark compact className="text-[var(--platform-nav-foreground)]" />
+        <BrandMark compact onDark />
         <div className="min-w-0">
           <p className="font-heading truncate text-sm leading-tight">
             {churchName}

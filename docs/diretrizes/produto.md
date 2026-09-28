@@ -1,5 +1,7 @@
 # Produto
 
+**Confessio** — Acolhimento e organização para paróquias.
+
 O sistema organiza **fila, senhas e confessionários** em sessões de confissão. Ele administra só o fluxo de atendimento.
 
 ## Obrigatório

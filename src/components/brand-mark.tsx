@@ -1,33 +1,66 @@
+import { APP_NAME, APP_TAGLINE } from "@/lib/brand";
 import { cn } from "@/lib/utils";
+
+function brandSrc({
+  compact,
+  lockup,
+  onDark,
+}: {
+  compact: boolean;
+  lockup: boolean;
+  onDark: boolean;
+}) {
+  if (compact) {
+    return onDark
+      ? "/brand/confessio/icons/confessio-symbol-light.svg"
+      : "/brand/confessio/icons/confessio-symbol.svg";
+  }
+
+  const tone = onDark ? "light" : "dark";
+  const variant = lockup ? "with-tagline" : "no-tagline";
+  return `/brand/confessio/logos/confessio-horizontal-${tone}-${variant}.svg`;
+}
 
 export function BrandMark({
   className,
   compact = false,
+  tagline = false,
+  lockup = false,
+  onDark = false,
 }: {
   className?: string;
   compact?: boolean;
+  tagline?: boolean;
+  lockup?: boolean;
+  onDark?: boolean;
 }) {
   return (
-    <span className={cn("inline-flex items-center gap-3", className)}>
-      <svg viewBox="0 0 96 96" aria-hidden="true" className="size-10 shrink-0">
-        <path
-          d="M20 78V43c0-18.8 11.7-31 28-31s28 12.2 28 31v35"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="8"
-          strokeLinecap="round"
-        />
-        <circle cx="48" cy="67" r="5" className="fill-brand-gold" />
-        <circle cx="48" cy="52" r="5" className="fill-brand-gold" />
-        <circle cx="48" cy="37" r="5" className="fill-brand-gold" />
-      </svg>
-      {compact ? null : (
-        <span className="font-heading text-[1.05rem] leading-[1.05] font-semibold tracking-[-0.015em]">
-          <span className="text-foreground block">Fila de</span>
-          <span className="text-primary block">Confissões</span>
-        </span>
+    <span
+      className={cn(
+        "inline-flex shrink-0 items-center",
+        tagline && !compact ? "flex-col items-start gap-1.5" : null,
+        className,
       )}
-      {compact ? <span className="sr-only">Fila de Confissões</span> : null}
+    >
+      {/* Official SVGs; img keeps vector quality in print and PWA. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={brandSrc({ compact, lockup, onDark })}
+        alt={APP_NAME}
+        className={cn(
+          "object-contain object-left",
+          compact
+            ? "size-10"
+            : lockup
+              ? "h-16 w-auto max-w-[22rem] sm:h-20"
+              : "h-9 w-auto max-w-[11.5rem] sm:h-10 sm:max-w-[13.5rem]",
+        )}
+      />
+      {tagline && !compact ? (
+        <span className="text-muted-foreground max-w-[18rem] text-xs leading-5 font-normal tracking-normal">
+          {APP_TAGLINE}
+        </span>
+      ) : null}
     </span>
   );
 }

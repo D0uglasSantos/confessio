@@ -1,4 +1,4 @@
-# DATABASE.md — Fila de Confissões
+# DATABASE.md — Confessio
 
 > Especificação do banco de dados do MVP do sistema de fila para confissões.
 >

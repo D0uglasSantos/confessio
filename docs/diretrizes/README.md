@@ -1,4 +1,4 @@
-# Diretrizes do sistema
+# Diretrizes do Confessio
 
 Regras obrigatórias do produto. Spec de banco e RPCs: [DATABASE.md](../DATABASE.md). Padrão de branches e commits: [git.md](../git.md).
 

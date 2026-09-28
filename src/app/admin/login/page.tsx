@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-import { BrandMark } from "@/components/brand-mark";
 import { LoginForm } from "@/components/admin/login-form";
+import { BrandMark } from "@/components/brand-mark";
 import {
   Card,
   CardContent,
@@ -9,9 +9,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { APP_NAME } from "@/lib/brand";
 
 type AdminLoginPageProps = {
   searchParams: Promise<{ error?: string }>;
+};
+
+export const metadata = {
+  title: "Entrar",
 };
 
 export default async function AdminLoginPage({
@@ -21,8 +26,8 @@ export default async function AdminLoginPage({
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-5 py-10 sm:px-6 sm:py-12">
-      <Link href="/" className="text-primary mb-8 w-fit">
-        <BrandMark />
+      <Link href="/" aria-label={APP_NAME} className="mb-8 w-fit">
+        <BrandMark tagline />
       </Link>
       <Card className="brand-panel ring-primary/10 border-0 py-6">
         <CardHeader>

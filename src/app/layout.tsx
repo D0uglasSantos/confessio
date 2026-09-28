@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Source_Serif_4 } from "next/font/google";
 
 import { Providers } from "@/components/providers";
+import { APP_NAME, APP_SLOGAN, BRAND_COLORS } from "@/lib/brand";
 
 import "./globals.css";
 
@@ -16,13 +17,15 @@ const sourceSerif = Source_Serif_4({
 });
 
 export const metadata: Metadata = {
-  title: "Fila de Confissões",
-  description:
-    "Fila anônima e em tempo real para sessões de confissão em paróquias.",
-  applicationName: "Fila de Confissões",
+  title: {
+    default: APP_NAME,
+    template: `%s · ${APP_NAME}`,
+  },
+  description: APP_SLOGAN,
+  applicationName: APP_NAME,
   appleWebApp: {
     capable: true,
-    title: "Confissões",
+    title: APP_NAME,
     statusBarStyle: "default",
   },
   formatDetection: {
@@ -31,7 +34,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  themeColor: "#4c3158",
+  themeColor: BRAND_COLORS.purple,
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover" as const,
