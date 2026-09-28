@@ -27,6 +27,7 @@ export default async function AdminNewSessionPage() {
       churchName={church.name}
       email={user.email ?? ""}
       isGlobalAdmin={Boolean(isGlobalAdmin)}
+      churchActive={church.is_active}
     >
       <ConsolePageHeader
         title="Nova sessão"

@@ -17,11 +17,13 @@ export function ParishShell({
   churchName,
   email,
   isGlobalAdmin,
+  churchActive = true,
   children,
 }: {
   churchName: string;
   email: string;
   isGlobalAdmin: boolean;
+  churchActive?: boolean;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -88,6 +90,12 @@ export function ParishShell({
         </header>
         <main className="flex-1 overflow-x-hidden px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
           <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+            {churchActive ? null : (
+              <p className="border-destructive/30 bg-destructive/10 text-destructive rounded-lg border px-3 py-2 text-sm">
+                Esta paróquia está desativada. O histórico permanece visível, mas
+                não é possível abrir novas sessões.
+              </p>
+            )}
             {children}
           </div>
         </main>

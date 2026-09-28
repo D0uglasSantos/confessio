@@ -6,6 +6,7 @@ Esta pasta concentra os planos oficiais de evolução do sistema.
 
 - `mvp-01-profissional-multi-paroquia.md`: visão do MVP profissional, segurança, multi-paróquia e administração global.
 - `mvp-01-backlog.md`: backlog incremental com fases, critérios de aceite e entregáveis.
+- `mvp-01-entrega.md`: checklist de regressão, bootstrap do admin global e release na Vercel.
 
 ## Regra de uso
 

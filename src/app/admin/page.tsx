@@ -46,15 +46,18 @@ export default async function AdminPage() {
       churchName={church.name}
       email={user.email ?? ""}
       isGlobalAdmin={Boolean(isGlobalAdmin)}
+      churchActive={church.is_active}
     >
       <ConsolePageHeader
         title="Visão geral"
         description="Abra a fila, acompanhe as sessões e compartilhe o QR Code com os fiéis."
         actions={
-          <Link href="/admin/sessoes/nova" className={buttonVariants()}>
-            <PlusIcon data-icon="inline-start" />
-            Nova sessão
-          </Link>
+          church.is_active ? (
+            <Link href="/admin/sessoes/nova" className={buttonVariants()}>
+              <PlusIcon data-icon="inline-start" />
+              Nova sessão
+            </Link>
+          ) : undefined
         }
       />
 

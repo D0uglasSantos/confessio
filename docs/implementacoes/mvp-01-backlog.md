@@ -91,7 +91,7 @@ Notas de implementação (auditoria feita nesta fase):
 - **Auditoria mínima**: nova tabela `platform_audit_log` (`supabase/migrations/20260928120000_global_admin_audit_log.sql`) + função `private.log_platform_action(...)`. `global_create_church` e `global_assign_church_admin` registram ação, ator e metadata agregada (nunca dado de fiel). Exibido em `/admin/global` via `AuditLogList`.
 - **Tratamento de erro**: `src/app/admin/actions.ts` tinha 7 pontos retornando `error.message`/`stationsError.message` crus do PostgREST direto pro usuário (potencial vazamento de detalhe técnico/nome de constraint). Todos passaram a usar `mapQueueError(...)`, que só retorna mensagens da allowlist e nunca o texto bruto do Postgres.
 - **Variáveis sensíveis**: confirmado que `SUPABASE_SERVICE_ROLE_KEY` só é lido em `src/lib/supabase/admin.ts`, usado apenas por Server Components/Server Actions (nenhum arquivo com `"use client"` importa esse módulo). `.env.local`/`.env` seguem no `.gitignore` e nunca foram commitados (`git log` limpo).
-- **Signup público desligado**: `supabase/config.toml` (`[auth]` e `[auth.email]`) com `enable_signup = false` — o app não tem cadastro público; contas nascem por convite. **Pendente ação manual**: desligar "Allow new users to sign up" também no dashboard do projeto hospedado antes do deploy (config.toml local não sincroniza automaticamente com o projeto remoto). Ver `docs/DATABASE.md` §"Hardening de Auth (produção)".
+- **Signup público desligado**: `supabase/config.toml` `[auth] enable_signup = false` (GoTrue `DISABLE_SIGNUP`). O provider de e-mail permanece ligado (`[auth.email] enable_signup = true`) para o login da secretaria. **Pendente ação manual no dashboard hospedado**: desligar só "Allow new users to sign up", sem desligar o provider Email. Ver `docs/DATABASE.md` §"Hardening de Auth (produção)".
 
 - **Home pública**: a revisão pré-Fase 5 encontrou que `src/app/page.tsx` ainda usava service role para escolher uma sessão e publicava o `access_token` do padre. Isso viola o critério “nenhuma superfície pública expõe segredos”. Corrigido: a home passou a ser só institucional + CTA de login.
 - **Login do admin global**: `signInAdminWithPassword` exigia `church_admins` e derrubava quem era só `global_admins`. Corrigido: aceita os dois papéis e redireciona para `/admin` ou `/admin/global`.
@@ -107,15 +107,21 @@ Decisão de produto (ver `mvp-01-profissional-multi-paroquia.md` §5.0):
 
 ## Fase 5 — Validação final de MVP
 
-- [ ] Executar regressão do fluxo fiel/padre/TV.
-- [ ] Executar regressão do fluxo admin local.
-- [ ] Validar fluxo admin global ponta a ponta.
-- [ ] Atualizar documentação final e checklist de entrega.
-- [ ] Preparar release para Vercel.
+- [x] Executar regressão do fluxo fiel/padre/TV.
+- [x] Executar regressão do fluxo admin local.
+- [x] Validar fluxo admin global ponta a ponta.
+- [x] Atualizar documentação final e checklist de entrega.
+- [x] Preparar release para Vercel.
 
 Critério de aceite:
 
-- MVP apto para entrada das primeiras paróquias.
+- MVP apto para entrada das primeiras paróquias. **Atingido** após `npm run test:db`, build de produção e checklist em `mvp-01-entrega.md`.
+
+Notas de implementação:
+
+- Script executável: `supabase/tests/mvp_01_regression.sql` (`npm run test:db`). Cobre isolamento de tenant, RPCs globais, ciclo da fila e paróquia inativa.
+- Achado da validação: paróquia `is_active = false` ainda podia ganhar sessão nova e senha. Corrigido em `20260928180000_inactive_church_guards.sql` (trigger no banco + bloqueio nas actions da secretaria).
+- Entrega e Vercel: `docs/implementacoes/mvp-01-entrega.md`. CI de `lint`+`build` em `.github/workflows/ci.yml`.
 
 ## Riscos e mitigação
 

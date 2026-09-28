@@ -16,6 +16,10 @@ const QUEUE_ERROR_MESSAGES: Array<[needle: string, message: string]> = [
   ["FORBIDDEN", "Você não tem permissão para esta ação."],
   ["CHURCH_NOT_FOUND", "Paróquia não encontrada."],
   ["CHURCH_HAS_ACTIVE_SESSION", "Encerre as sessões ativas antes de desativar a paróquia."],
+  [
+    "CHURCH_INACTIVE",
+    "Esta paróquia está desativada. Não é possível abrir novas sessões.",
+  ],
 ];
 
 export function mapQueueError(

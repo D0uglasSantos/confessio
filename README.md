@@ -2,7 +2,7 @@
 
 Sistema web/PWA para organizar filas de confissão em paróquias. O fiel entra pelo QR Code, recebe uma senha anônima e acompanha a chamada em tempo real.
 
-Este repositório está na **Fase 7 (Polish de concorrência)**: app Next.js + schema/RPCs no Supabase **local** + admin/fiel/padre/TV + métricas + PWA, com refetch debounced e mutações anti double-tap. Não há projeto remoto nem domínio próprio nesta etapa.
+Este repositório está no **MVP 01** (profissional + multi-paróquia + admin global). O app Next.js fala com o Supabase (local ou projeto remoto) e o deploy previsto é a Vercel. Checklist de entrega: [docs/implementacoes/mvp-01-entrega.md](docs/implementacoes/mvp-01-entrega.md).
 
 ## Princípios
 
@@ -41,10 +41,16 @@ URLs locais:
 - Supabase API: [http://127.0.0.1:54321](http://127.0.0.1:54321)
 - Studio: [http://127.0.0.1:54323](http://127.0.0.1:54323)
 
-O seed cria a paróquia de exemplo, a sessão `7DHF92` (aberta), três confessionários e o admin local:
+O seed cria a paróquia de exemplo, a sessão `7DHF92` (aberta), três confessionários e duas contas locais:
 
-- e-mail: `admin@paroquia.local`
-- senha: `admin123`
+- secretaria: `admin@paroquia.local` / `admin123`
+- plataforma: `global@plataforma.local` / `global123`
+
+Regressão do banco (depois do reset):
+
+```bash
+npm run test:db
+```
 
 ## RPCs da fila
 
@@ -66,12 +72,14 @@ Tokens (`anonymous_token`, `access_token`) ficam em tabelas separadas e fora do 
 
 ## Rotas
 
+- `/` — porta institucional (login da secretaria/plataforma)
 - `/s/[slug]` — entrada do fiel
 - `/s/[slug]/minha-senha` — acompanhamento
 - `/padre/[stationId]` — painel do sacerdote
 - `/tv/[sessionSlug]` — telão
-- `/admin` — administração (login local)
+- `/admin` — secretaria da paróquia
 - `/admin/sessoes/[sessionId]` — operação da sessão
+- `/admin/global` — administração da plataforma
 
 ## PWA
 
@@ -93,8 +101,11 @@ Tokens (`anonymous_token`, `access_token`) ficam em tabelas separadas e fora do 
 - Lock síncrono anti double-tap em entrar na fila / ações do padre / cancelar / admin
 - Confirmação em no-show e finalizar atendimento
 - Mapper central de erros em `src/lib/queue/errors.ts`
-- Roteiro manual: `supabase/tests/queue_concurrency.sql`
+- Roteiro manual de concorrência simultânea: `supabase/tests/queue_concurrency.sql`
+- Regressão executável (isolamento, admin global e ciclo da fila): `supabase/tests/mvp_01_regression.sql`
 
-## Próximas fases
+## Produção (Vercel)
 
-Retenção/agregação de métricas (V2) → deploy remoto.
+Variáveis e bootstrap do admin global: [docs/implementacoes/mvp-01-entrega.md](docs/implementacoes/mvp-01-entrega.md).
+
+No dashboard hospedado, desligue o cadastro público de e-mail antes de abrir às paróquias.

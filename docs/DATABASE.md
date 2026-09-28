@@ -209,6 +209,8 @@ A partir do MVP-01, `churches.is_active` indica se a paróquia continua operando
 
 Não desativar paróquia com sessão `OPEN` ou `ENTRY_CLOSED`.
 
+Paróquia inativa não aceita sessão nova (`DRAFT`/`OPEN`/`ENTRY_CLOSED`) nem ticket `WAITING`. O estado público (`get_public_session_state`) responde `SESSION_NOT_FOUND`. A secretaria ainda entra em `/admin` para ver o histórico.
+
 ## church_admins
 
 Relaciona usuários do Supabase Auth com uma igreja.
@@ -3085,12 +3087,15 @@ Regras:
 
 ## Hardening de Auth (produção)
 
-Como o app não tem cadastro público, o signup por e-mail deve ficar **desligado** tanto localmente (`supabase/config.toml`) quanto no projeto hospedado:
+Como o app não tem cadastro público, o signup por e-mail deve ficar **desligado** tanto localmente (`[auth] enable_signup = false` em `supabase/config.toml`) quanto no projeto hospedado:
 
 ```text
 Dashboard do Supabase → Authentication → Providers → Email
 → desligar "Allow new users to sign up"
+→ manter o provider Email ligado (senão o login da secretaria quebra)
 ```
+
+Localmente, `[auth.email] enable_signup` precisa permanecer `true`. Se for `false`, o CLI desliga `GOTRUE_EXTERNAL_EMAIL_ENABLED` e o `signInWithPassword` passa a falhar com `email_provider_disabled`.
 
 Contas de admin (local ou global) só existem por convite/criação manual no Supabase Auth, seguidas do vínculo via `global_assign_church_admin` ou do bootstrap de `global_admins` (seção acima).
 
@@ -3122,6 +3127,7 @@ SESSION_HAS_ACTIVE_TICKETS
 SESSION_HAS_ACTIVE_SERVICE
 CHURCH_NOT_FOUND
 CHURCH_HAS_ACTIVE_SESSION
+CHURCH_INACTIVE
 ```
 
 Criar um mapper no frontend.
@@ -3162,6 +3168,10 @@ Frontend pode controlar UX, mas não autoridade.
 ---
 
 # 27. Testes obrigatórios
+
+Regressão executável (seed local): `npm run test:db` → `supabase/tests/mvp_01_regression.sql`.
+
+Smoke manual de duas estações ao mesmo tempo: `supabase/tests/queue_concurrency.sql`.
 
 ## Teste 1 — concorrência
 
