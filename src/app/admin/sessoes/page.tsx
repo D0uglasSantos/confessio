@@ -32,15 +32,18 @@ export default async function AdminSessionsPage() {
       churchName={church.name}
       email={user.email ?? ""}
       isGlobalAdmin={Boolean(isGlobalAdmin)}
+      churchActive={church.is_active}
     >
       <ConsolePageHeader
         title="Sessões"
         description="Rascunhos, filas em operação e histórico da paróquia."
         actions={
-          <Link href="/admin/sessoes/nova" className={buttonVariants()}>
-            <PlusIcon data-icon="inline-start" />
-            Nova sessão
-          </Link>
+          church.is_active ? (
+            <Link href="/admin/sessoes/nova" className={buttonVariants()}>
+              <PlusIcon data-icon="inline-start" />
+              Nova sessão
+            </Link>
+          ) : undefined
         }
       />
       <Suspense fallback={<SessionsFallback />}>

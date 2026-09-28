@@ -100,6 +100,7 @@ export default async function AdminSessionPage({
       churchName={church.name}
       email={user.email ?? ""}
       isGlobalAdmin={Boolean(isGlobalAdmin)}
+      churchActive={church.is_active}
     >
       <AdminSessionRealtime sessionId={session.id} />
 

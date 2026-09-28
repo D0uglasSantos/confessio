@@ -1,6 +1,6 @@
 # MVP 01 — Profissional + Multi-paróquia + Admin Global
 
-Status: planejamento aprovado para início de implementação incremental.
+Status: MVP validado para as primeiras paróquias (Fase 5). Deploy previsto na Vercel.
 
 ## 1) Objetivo do ciclo
 

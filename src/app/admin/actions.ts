@@ -3,7 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { requireAdminChurch } from "@/lib/admin/church";
+import {
+  CHURCH_INACTIVE_MESSAGE,
+  requireAdminChurch,
+} from "@/lib/admin/church";
 import { passwordResetCallbackUrl } from "@/lib/app-url";
 import { mapQueueError } from "@/lib/queue/errors";
 import {
@@ -178,6 +181,11 @@ export async function createSessionAction(
   }
 
   const { supabase, church } = await requireAdminChurch();
+
+  if (!church.is_active) {
+    return { ok: false, message: CHURCH_INACTIVE_MESSAGE };
+  }
+
   const input = parsed.data;
 
   let startsAt: string;
@@ -242,6 +250,10 @@ export async function openSessionAction(
   sessionId: string,
 ): Promise<ActionResult> {
   const { supabase, church } = await requireAdminChurch();
+
+  if (!church.is_active) {
+    return { ok: false, message: CHURCH_INACTIVE_MESSAGE };
+  }
 
   const { data: session } = await supabase
     .from("sessions")
@@ -412,6 +424,11 @@ export async function addStationAction(
   }
 
   const { supabase, church } = await requireAdminChurch();
+
+  if (!church.is_active) {
+    return { ok: false, message: CHURCH_INACTIVE_MESSAGE };
+  }
+
   const { sessionId, name, priestName } = parsed.data;
 
   const { data: session } = await supabase
@@ -509,6 +526,10 @@ export async function issuePaperTicketsAction(
   }
 
   const { supabase, church } = await requireAdminChurch();
+
+  if (!church.is_active) {
+    return { ok: false, message: CHURCH_INACTIVE_MESSAGE };
+  }
 
   const { data: session } = await supabase
     .from("sessions")

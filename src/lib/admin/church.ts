@@ -45,7 +45,7 @@ export async function requireAdminChurch() {
 
     const { data: church } = await admin
       .from("churches")
-      .select("id, name, slug")
+      .select("id, name, slug, is_active")
       .eq("id", membership.church_id)
       .maybeSingle();
 
@@ -67,3 +67,6 @@ export async function requireAdminChurch() {
     redirect("/admin/login");
   }
 }
+
+export const CHURCH_INACTIVE_MESSAGE =
+  "Esta paróquia está desativada. Não é possível abrir novas sessões.";
