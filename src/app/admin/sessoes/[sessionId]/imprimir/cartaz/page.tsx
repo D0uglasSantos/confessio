@@ -35,7 +35,7 @@ export default async function SessionPosterPage({ params }: CartazPageProps) {
       <PrintToolbar backHref={backHref} />
 
       <article className="print-poster-sheet">
-        <BrandMark compact className="print-brand-mark" />
+        <BrandMark lockup className="print-brand-mark" />
         <p className="print-kicker">{church.name}</p>
         <h1 className="font-heading print-poster-title">{session.name}</h1>
         <p className="print-poster-lead">

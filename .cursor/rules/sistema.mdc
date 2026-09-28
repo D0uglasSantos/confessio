@@ -1,5 +1,5 @@
 ---
-description: Diretrizes de produto, privacidade, arquitetura e UI da fila de confissões
+description: Diretrizes de produto, privacidade, arquitetura e UI do Confessio
 alwaysApply: true
 ---
 
@@ -9,7 +9,7 @@ Fonte: `docs/diretrizes`. Spec: `docs/DATABASE.md`.
 
 ## Produto
 
-Fila, senhas e confessionários. Fiel sem conta e sem PII. Uma fila por sessão; o fiel não escolhe o padre. Auth só em `/admin`. Nunca armazenar conteúdo da confissão.
+Confessio — fila, senhas e confessionários. Fiel sem conta e sem PII. Uma fila por sessão; o fiel não escolhe o padre. Auth só em `/admin`. Nunca armazenar conteúdo da confissão.
 
 ## Privacidade
 

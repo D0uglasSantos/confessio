@@ -148,7 +148,7 @@ export function MyTicketClient({
         )}
       >
         <CardHeader className="space-y-4 px-1 text-center sm:px-6">
-          <BrandMark compact className="text-primary mx-auto" />
+          <BrandMark compact className="mx-auto" />
           <Badge
             variant={isCalled ? "default" : "secondary"}
             className="mx-auto w-fit text-sm"

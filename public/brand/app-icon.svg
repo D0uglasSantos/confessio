@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title description">
-  <title id="title">Ícone Fila de Confissões</title>
-  <desc id="description">Portal com três pontos sobre fundo violeta.</desc>
-  <rect width="512" height="512" rx="112" fill="#4C3158"/>
-  <path d="M132 398V232c0-99 51.8-162 124-162s124 63 124 162v166" fill="none" stroke="#F8F3E8" stroke-width="38" stroke-linecap="round"/>
-  <circle cx="256" cy="341" r="22" fill="#D7B16A"/>
-  <circle cx="256" cy="276" r="22" fill="#D7B16A"/>
-  <circle cx="256" cy="211" r="22" fill="#D7B16A"/>
-</svg>

@@ -85,8 +85,8 @@ export default function HomePage() {
               Menos espera. Mais serenidade.
             </h1>
             <p className="text-muted-foreground mt-6 max-w-xl text-lg leading-8 sm:text-xl">
-              Uma fila de confissões anônima e em tempo real para a paróquia
-              acolher melhor — do primeiro QR Code à chamada no telão.
+              Acolhimento e organização para paróquias: uma fila anônima e em
+              tempo real — do primeiro QR Code à chamada no telão.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-4">
               <Link
@@ -203,7 +203,7 @@ export default function HomePage() {
         </section>
 
         <footer className="border-border/80 text-muted-foreground flex flex-col gap-4 border-t py-8 text-sm sm:flex-row sm:items-center sm:justify-between">
-          <BrandMark className="text-primary" />
+          <BrandMark tagline />
           <p className="max-w-xl sm:text-right">
             A plataforma administra somente o fluxo. Nenhum conteúdo da
             confissão ou dado pessoal do fiel é armazenado.

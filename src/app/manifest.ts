@@ -1,15 +1,16 @@
 import type { MetadataRoute } from "next";
 
+import { APP_NAME, APP_SLOGAN, BRAND_COLORS } from "@/lib/brand";
+
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Fila de Confissões",
-    short_name: "Confissões",
-    description:
-      "Fila anônima e em tempo real para sessões de confissão em paróquias.",
+    name: APP_NAME,
+    short_name: APP_NAME,
+    description: APP_SLOGAN,
     start_url: "/",
     display: "standalone",
-    background_color: "#f8f3e8",
-    theme_color: "#4c3158",
+    background_color: BRAND_COLORS.ivory,
+    theme_color: BRAND_COLORS.purple,
     lang: "pt-BR",
     orientation: "portrait-primary",
     icons: [

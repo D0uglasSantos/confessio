@@ -1,4 +1,6 @@
-# Fila de Confissões
+# Confessio
+
+Confessio — Acolhimento e organização para paróquias.
 
 Sistema web/PWA para organizar filas de confissão em paróquias. O fiel entra pelo QR Code, recebe uma senha anônima e acompanha a chamada em tempo real.
 
@@ -84,7 +86,7 @@ Tokens (`anonymous_token`, `access_token`) ficam em tabelas separadas e fora do 
 ## PWA
 
 - Manifest em `/manifest.webmanifest` (`src/app/manifest.ts`)
-- Ícones em `public/icons/` + `app/icon.tsx`
+- Ícones em `public/icons/` + `app/icon.svg`
 - Service worker em `public/sw.js` (registrado só em produção): cache mínimo do shell; a fila continua online via Supabase
 
 ## Responsividade

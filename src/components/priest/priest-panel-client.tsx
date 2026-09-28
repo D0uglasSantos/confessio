@@ -66,7 +66,7 @@ export function PriestPanelClient({
     <MobileShell className="gap-4 py-3">
       <Card className="flex min-h-0 flex-1 flex-col border-0 shadow-none sm:border sm:shadow-sm">
         <CardHeader className="shrink-0 space-y-3 px-1 sm:px-6">
-          <BrandMark className="text-primary mb-2" />
+          <BrandMark className="mb-2" />
           <div className="flex flex-wrap gap-2">
             <Badge variant="secondary">
               {stationStatusLabel[station.status]}

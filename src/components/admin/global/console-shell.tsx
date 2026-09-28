@@ -3,14 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { ChurchIcon, MenuIcon, XIcon } from "lucide-react";
+import { MenuIcon, XIcon } from "lucide-react";
 
 import { SignOutButton } from "@/components/admin/sign-out-button";
 import {
   globalNavItems,
   isGlobalNavActive,
 } from "@/components/admin/global/nav";
+import { BrandMark } from "@/components/brand-mark";
 import { Button } from "@/components/ui/button";
+import { APP_NAME } from "@/lib/brand";
 
 export function ConsoleShell({
   email,
@@ -77,7 +79,7 @@ export function ConsoleShell({
             <span className="sr-only">Abrir menu</span>
           </Button>
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium">Fila de Confissões</p>
+            <p className="truncate text-sm font-medium">{APP_NAME}</p>
             <p className="text-muted-foreground text-xs">Plataforma</p>
           </div>
         </header>
@@ -105,12 +107,10 @@ function SidebarContent({
   return (
     <>
       <div className="flex items-center gap-3 px-4 py-5">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[var(--platform-nav-accent)] text-[var(--platform-nav)]">
-          <ChurchIcon className="size-4" />
-        </span>
+        <BrandMark compact onDark />
         <div className="min-w-0">
           <p className="font-heading truncate text-sm leading-tight">
-            Fila de Confissões
+            {APP_NAME}
           </p>
           <p className="platform-nav-muted mt-0.5 text-[11px] tracking-[0.16em] uppercase">
             Plataforma
