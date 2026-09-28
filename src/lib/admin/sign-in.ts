@@ -7,8 +7,10 @@ import type { AdminSignInFailure } from "@/lib/admin/sign-in-messages";
 
 export type { AdminSignInFailure };
 
+export type AdminDestination = "/admin" | "/admin/global";
+
 export type AdminSignInResult =
-  | { ok: true }
+  | { ok: true; destination: AdminDestination }
   | { ok: false; code: AdminSignInFailure };
 
 export async function signInAdminWithPassword(
@@ -45,22 +47,34 @@ export async function signInAdminWithPassword(
   try {
     const admin = tryCreateAdminClient();
     if (!admin) {
-      return { ok: true };
+      return { ok: true, destination: "/admin" };
     }
 
-    const { data: membership } = await admin
-      .from("church_admins")
-      .select("church_id")
-      .eq("user_id", data.user.id)
-      .maybeSingle();
+    const [{ data: membership }, { data: globalAdmin }] = await Promise.all([
+      admin
+        .from("church_admins")
+        .select("church_id")
+        .eq("user_id", data.user.id)
+        .maybeSingle(),
+      admin
+        .from("global_admins")
+        .select("user_id")
+        .eq("user_id", data.user.id)
+        .eq("is_active", true)
+        .maybeSingle(),
+    ]);
 
-    if (!membership) {
+    if (!membership && !globalAdmin) {
       await supabase.auth.signOut();
       return { ok: false, code: "forbidden" };
     }
-  } catch {
-    // O painel confirma o vínculo. Não derruba o login.
-  }
 
-  return { ok: true };
+    if (globalAdmin && !membership) {
+      return { ok: true, destination: "/admin/global" };
+    }
+
+    return { ok: true, destination: "/admin" };
+  } catch {
+    return { ok: true, destination: "/admin" };
+  }
 }

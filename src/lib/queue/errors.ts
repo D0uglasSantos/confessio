@@ -14,6 +14,8 @@ const QUEUE_ERROR_MESSAGES: Array<[needle: string, message: string]> = [
   ["PRINT_BATCH_NOT_FOUND", "Lote de impressão não encontrado."],
   ["SESSION_NOT_DRAFT", "A sessão já foi aberta."],
   ["FORBIDDEN", "Você não tem permissão para esta ação."],
+  ["CHURCH_NOT_FOUND", "Paróquia não encontrada."],
+  ["CHURCH_HAS_ACTIVE_SESSION", "Encerre as sessões ativas antes de desativar a paróquia."],
 ];
 
 export function mapQueueError(

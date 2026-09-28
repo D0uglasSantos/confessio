@@ -205,6 +205,10 @@ stations          tickets
 
 Representa uma paróquia/igreja.
 
+A partir do MVP-01, `churches.is_active` indica se a paróquia continua operando. Desativar não apaga sessões nem tickets. Exclusão física (CASCADE) fica fora deste ciclo.
+
+Não desativar paróquia com sessão `OPEN` ou `ENTRY_CLOSED`.
+
 ## church_admins
 
 Relaciona usuários do Supabase Auth com uma igreja.
@@ -3011,6 +3015,87 @@ church_admins
 
 ---
 
+# 24.1 Admin Global (multi-paróquia)
+
+A partir do ciclo MVP-01, o sistema passa a suportar várias paróquias. Existem dois níveis de autorização, sempre validados no banco:
+
+```text
+church_admins   → admin local, escopo de uma única paróquia
+global_admins   → admin da plataforma, escopo de todas as paróquias
+```
+
+`global_admins`:
+
+```text
+user_id     uuid  (referencia auth.users, PK)
+role        text  ('owner' | 'operator' | 'viewer')
+is_active   boolean
+```
+
+Hierarquia de papéis (`is_global_admin(p_required_role)`):
+
+```text
+owner     → tudo que operator e viewer podem
+operator  → cadastrar paróquia, vincular admin local, ver métricas
+viewer    → apenas leitura (lista de paróquias e métricas)
+```
+
+RPCs (todas exigem usuário autenticado vinculado em `global_admins`):
+
+```text
+is_global_admin(p_required_role text default null)
+global_list_churches()
+global_create_church(p_name text, p_slug text, p_logo_url text default null)
+global_update_church(p_church_id uuid, p_name text, p_slug text, p_logo_url text default null)
+global_set_church_active(p_church_id uuid, p_is_active boolean)
+global_get_dashboard_metrics(p_from timestamptz default now() - 30d, p_to timestamptz default now())
+global_assign_church_admin(p_church_id uuid, p_user_id uuid)
+```
+
+Bootstrap do primeiro admin global (executar no SQL Editor do Supabase, uma única vez):
+
+```sql
+insert into public.global_admins (user_id, role)
+values ('AUTH_USER_UUID', 'owner');
+```
+
+Regras permanentes:
+
+- `global_admins` nunca autoriza operações dentro de uma paróquia (fila, sessão, ticket). Isso continua sendo exclusivo de `church_admins`.
+- Vincular um admin local (`global_assign_church_admin`) exige que o `user_id` já exista em `auth.users` — criado via convite/painel do Supabase Auth. O MVP não cria usuários por conta própria nesta RPC.
+- Toda métrica exposta ao admin global é agregada; nunca lista tickets, conteúdo de sessão ou qualquer dado de um fiel específico.
+
+## Auditoria de ações da plataforma
+
+Ações administrativas críticas de nível global são registradas em `platform_audit_log` (ator, ação, tipo/alvo, metadata agregada, timestamp). Hoje cobre:
+
+```text
+church.create
+church.update
+church.activate
+church.deactivate
+church_admin.assign
+```
+
+Regras:
+
+- Nunca registrar dado de fiel, conteúdo de confissão ou token privado nessa tabela.
+- Somente leitura por `global_admins` com papel `operator` ou `owner` (RLS).
+- Toda nova ação administrativa crítica (ex.: remover admin, suspender paróquia) deve chamar `private.log_platform_action(...)` ao ser implementada.
+
+## Hardening de Auth (produção)
+
+Como o app não tem cadastro público, o signup por e-mail deve ficar **desligado** tanto localmente (`supabase/config.toml`) quanto no projeto hospedado:
+
+```text
+Dashboard do Supabase → Authentication → Providers → Email
+→ desligar "Allow new users to sign up"
+```
+
+Contas de admin (local ou global) só existem por convite/criação manual no Supabase Auth, seguidas do vínculo via `global_assign_church_admin` ou do bootstrap de `global_admins` (seção acima).
+
+---
+
 # 25. Erros das RPCs
 
 As funções utilizam códigos de domínio como mensagens de exceção.
@@ -3035,6 +3120,8 @@ FORBIDDEN
 SESSION_NOT_DRAFT
 SESSION_HAS_ACTIVE_TICKETS
 SESSION_HAS_ACTIVE_SERVICE
+CHURCH_NOT_FOUND
+CHURCH_HAS_ACTIVE_SESSION
 ```
 
 Criar um mapper no frontend.

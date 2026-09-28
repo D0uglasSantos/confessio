@@ -13,7 +13,7 @@ export function adminSignInMessage(code: AdminSignInFailure) {
     case "unconfirmed":
       return "Confirme o e-mail deste usuário no painel de Auth do Supabase.";
     case "forbidden":
-      return "Este usuário não é administrador da paróquia.";
+      return "Este usuário não é administrador de paróquia nem da plataforma.";
     case "config":
       return "O login está sem as variáveis do Supabase no servidor. Confira o ambiente na Vercel.";
     case "unexpected":

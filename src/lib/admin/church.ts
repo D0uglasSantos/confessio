@@ -32,6 +32,14 @@ export async function requireAdminChurch() {
       .maybeSingle();
 
     if (!membership) {
+      const { data: isGlobal } = await supabase.rpc("is_global_admin", {
+        p_required_role: "viewer",
+      });
+
+      if (isGlobal) {
+        redirect("/admin/global");
+      }
+
       redirect("/admin/sem-permissao");
     }
 

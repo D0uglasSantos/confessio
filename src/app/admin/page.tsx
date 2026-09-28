@@ -20,13 +20,20 @@ import { tryCreateAdminClient } from "@/lib/supabase/admin";
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  const { church, admin: verifiedAdmin } = await requireAdminChurch();
+  const {
+    church,
+    admin: verifiedAdmin,
+    supabase,
+  } = await requireAdminChurch();
   const admin = tryCreateAdminClient() ?? verifiedAdmin;
-  const { data: sessions } = await admin
-    .from("sessions")
-    .select("id, name, slug, status, starts_at, created_at")
-    .eq("church_id", church.id)
-    .order("created_at", { ascending: false });
+  const [{ data: sessions }, { data: isGlobalAdmin }] = await Promise.all([
+    admin
+      .from("sessions")
+      .select("id, name, slug, status, starts_at, created_at")
+      .eq("church_id", church.id)
+      .order("created_at", { ascending: false }),
+    supabase.rpc("is_global_admin", { p_required_role: "viewer" }),
+  ]);
 
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-6 py-10">
@@ -38,7 +45,17 @@ export default async function AdminPage() {
             Crie sessões, abra a fila e compartilhe o QR Code com os fiéis.
           </p>
         </div>
-        <SignOutButton />
+        <div className="flex items-center gap-2">
+          {isGlobalAdmin ? (
+            <Link
+              href="/admin/global"
+              className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+            >
+              Painel da plataforma
+            </Link>
+          ) : null}
+          <SignOutButton />
+        </div>
       </header>
 
       <section className="space-y-4">

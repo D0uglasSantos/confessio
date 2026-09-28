@@ -100,7 +100,7 @@ export function LoginForm({ errorHint }: { errorHint?: string }) {
 
       <p className="text-xs text-muted-foreground">
         {localDev
-          ? "Ambiente local: admin@paroquia.local / admin123"
+          ? "Ambiente local: secretaria admin@paroquia.local / admin123 · plataforma global@plataforma.local / global123"
           : "Use o e-mail e a senha do usuário criado em Authentication → Users. O seed local não existe no cloud."}
       </p>
     </form>

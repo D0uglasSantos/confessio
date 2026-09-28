@@ -64,6 +64,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_active: boolean
           logo_url: string | null
           name: string
           slug: string
@@ -71,6 +72,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          is_active?: boolean
           logo_url?: string | null
           name: string
           slug: string
@@ -78,9 +80,31 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          is_active?: boolean
           logo_url?: string | null
           name?: string
           slug?: string
+        }
+        Relationships: []
+      }
+      global_admins: {
+        Row: {
+          created_at: string
+          is_active: boolean
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          is_active?: boolean
+          role?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          is_active?: boolean
+          role?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -161,6 +185,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      platform_audit_log: {
+        Row: {
+          action: string
+          actor_user_id: string | null
+          created_at: string
+          id: string
+          metadata: Json
+          target_id: string | null
+          target_type: string
+        }
+        Insert: {
+          action: string
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          target_id?: string | null
+          target_type: string
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          target_id?: string | null
+          target_type?: string
+        }
+        Relationships: []
       }
       session_counters: {
         Row: {
@@ -500,7 +554,34 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      global_assign_church_admin: {
+        Args: { p_church_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      global_create_church: {
+        Args: { p_logo_url?: string; p_name: string; p_slug: string }
+        Returns: string
+      }
+      global_get_dashboard_metrics: {
+        Args: { p_from?: string; p_to?: string }
+        Returns: Json
+      }
+      global_list_churches: { Args: never; Returns: Json }
+      global_set_church_active: {
+        Args: { p_church_id: string; p_is_active: boolean }
+        Returns: boolean
+      }
+      global_update_church: {
+        Args: {
+          p_church_id: string
+          p_logo_url?: string
+          p_name: string
+          p_slug: string
+        }
+        Returns: boolean
+      }
       is_church_admin: { Args: { p_church_id: string }; Returns: boolean }
+      is_global_admin: { Args: { p_required_role?: string }; Returns: boolean }
       is_visible_session_status: {
         Args: { p_status: Database["public"]["Enums"]["session_status"] }
         Returns: boolean

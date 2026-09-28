@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
 
   const response = redirectTo(
     request,
-    result.ok ? "/admin" : loginErrorPath(result.code),
+    result.ok ? result.destination : loginErrorPath(result.code),
   );
 
   pendingCookies.forEach(({ name, value, options }) => {

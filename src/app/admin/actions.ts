@@ -203,7 +203,7 @@ export async function createSessionAction(
       message:
         error?.code === "23505"
           ? "Já existe uma sessão com esse slug."
-          : (error?.message ?? "Não foi possível criar a sessão."),
+          : mapQueueError(error?.message, "Não foi possível criar a sessão."),
     };
   }
 
@@ -220,7 +220,10 @@ export async function createSessionAction(
     await supabase.from("sessions").delete().eq("id", session.id);
     return {
       ok: false,
-      message: stationsError.message ?? "Erro ao criar confessionários.",
+      message: mapQueueError(
+        stationsError.message,
+        "Erro ao criar confessionários.",
+      ),
     };
   }
 
@@ -255,7 +258,10 @@ export async function openSessionAction(sessionId: string): Promise<ActionResult
     .eq("id", sessionId);
 
   if (error) {
-    return { ok: false, message: error.message };
+    return {
+      ok: false,
+      message: mapQueueError(error.message, "Não foi possível abrir a fila."),
+    };
   }
 
   await supabase
@@ -295,7 +301,13 @@ export async function closeEntryAction(sessionId: string): Promise<ActionResult>
     .eq("id", sessionId);
 
   if (error) {
-    return { ok: false, message: error.message };
+    return {
+      ok: false,
+      message: mapQueueError(
+        error.message,
+        "Não foi possível encerrar a entrada.",
+      ),
+    };
   }
 
   revalidatePath("/admin");
@@ -350,7 +362,13 @@ export async function finishSessionAction(
     .eq("id", sessionId);
 
   if (error) {
-    return { ok: false, message: error.message };
+    return {
+      ok: false,
+      message: mapQueueError(
+        error.message,
+        "Não foi possível encerrar a sessão.",
+      ),
+    };
   }
 
   await supabase
@@ -407,7 +425,13 @@ export async function addStationAction(
   });
 
   if (error) {
-    return { ok: false, message: error.message };
+    return {
+      ok: false,
+      message: mapQueueError(
+        error.message,
+        "Não foi possível adicionar o confessionário.",
+      ),
+    };
   }
 
   revalidatePath(`/admin/sessoes/${sessionId}`);
@@ -436,7 +460,13 @@ export async function toggleWaitingQueueOnTvAction(
     .eq("id", sessionId);
 
   if (error) {
-    return { ok: false, message: error.message };
+    return {
+      ok: false,
+      message: mapQueueError(
+        error.message,
+        "Não foi possível atualizar a exibição no telão.",
+      ),
+    };
   }
 
   revalidatePath(`/admin/sessoes/${sessionId}`);

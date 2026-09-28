@@ -10,21 +10,22 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-export default function AdminForbiddenPage() {
+export default function AdminGlobalForbiddenPage() {
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 py-12">
       <Card>
         <CardHeader>
-          <CardTitle className="font-heading text-3xl">Sem permissão</CardTitle>
+          <CardTitle className="font-heading text-3xl">
+            Sem permissão
+          </CardTitle>
           <CardDescription>
-            Este usuário já tem login, mas ainda não foi vinculado a nenhuma
-            paróquia. Peça para um administrador da plataforma liberar seu
-            acesso.
+            Este usuário já tem login, mas não tem acesso ao painel da
+            plataforma. Apenas administradores globais podem entrar aqui.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <Link href="/" className={buttonVariants({ variant: "outline" })}>
-            Voltar ao início
+        <CardContent className="flex flex-wrap gap-3">
+          <Link href="/admin" className={buttonVariants({ variant: "outline" })}>
+            Ir para o admin da paróquia
           </Link>
           <SignOutButton />
         </CardContent>
