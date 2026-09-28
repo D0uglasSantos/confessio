@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { BrandMark } from "@/components/brand-mark";
 import { PrintAuto, PrintToolbar } from "@/components/print/print-toolbar";
 import { requireAdminChurch } from "@/lib/admin/church";
 
@@ -52,14 +53,15 @@ export default async function PaperTicketPage({
       <PrintToolbar backHref={backHref} />
 
       <article className="print-ticket-sheet">
+        <BrandMark compact className="print-brand-mark" />
         <p className="print-kicker">{church.name}</p>
         <p className="print-ticket-session">{session.name}</p>
         <p className="print-ticket-label">Sua senha</p>
         <p className="font-heading print-ticket-code">{ticket.public_code}</p>
         <p className="print-ticket-hint">Acompanhe no telão</p>
         <p className="print-ticket-note">
-          Não é necessário celular. Quando este número for chamado, dirija-se
-          ao confessionário indicado.
+          Não é necessário celular. Quando este número for chamado, dirija-se ao
+          confessionário indicado.
         </p>
       </article>
     </main>

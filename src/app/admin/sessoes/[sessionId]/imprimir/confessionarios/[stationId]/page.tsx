@@ -11,7 +11,9 @@ type StationCardPageProps = {
   params: Promise<{ sessionId: string; stationId: string }>;
 };
 
-export default async function StationCardPage({ params }: StationCardPageProps) {
+export default async function StationCardPage({
+  params,
+}: StationCardPageProps) {
   const { sessionId, stationId } = await params;
   const { admin, church } = await requireAdminChurch();
 

@@ -1,8 +1,14 @@
 import Link from "next/link";
+import { PlusIcon } from "lucide-react";
 
-import { CreateSessionForm } from "@/components/admin/create-session-form";
-import { SignOutButton } from "@/components/admin/sign-out-button";
-import { Badge } from "@/components/ui/badge";
+import { ConsolePageHeader } from "@/components/admin/console-page-header";
+import { ParishOverviewMetrics } from "@/components/admin/parish/overview-metrics";
+import { ParishShell } from "@/components/admin/parish/parish-shell";
+import {
+  getParishSessionStats,
+  type ParishSessionSummary,
+} from "@/components/admin/parish/session-helpers";
+import { SessionStatusBadge } from "@/components/admin/parish/session-status-badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
@@ -11,21 +17,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { requireAdminChurch } from "@/lib/admin/church";
 import { formatAdminDateTime } from "@/lib/admin/format";
-import { sessionStatusLabel } from "@/lib/admin/labels";
-import { tryCreateAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "Secretaria",
+};
+
 export default async function AdminPage() {
-  const {
-    church,
-    admin: verifiedAdmin,
-    supabase,
-  } = await requireAdminChurch();
-  const admin = tryCreateAdminClient() ?? verifiedAdmin;
+  const { church, admin, supabase, user } = await requireAdminChurch();
   const [{ data: sessions }, { data: isGlobalAdmin }] = await Promise.all([
     admin
       .from("sessions")
@@ -35,85 +37,109 @@ export default async function AdminPage() {
     supabase.rpc("is_global_admin", { p_required_role: "viewer" }),
   ]);
 
+  const list = (sessions ?? []) as ParishSessionSummary[];
+  const stats = getParishSessionStats(list);
+  const recent = list.slice(0, 6);
+
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-6 py-10">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <Badge variant="secondary">{church.name}</Badge>
-          <h1 className="font-heading mt-3 text-4xl">Administração</h1>
-          <p className="mt-2 text-muted-foreground">
-            Crie sessões, abra a fila e compartilhe o QR Code com os fiéis.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {isGlobalAdmin ? (
-            <Link
-              href="/admin/global"
-              className="text-sm text-muted-foreground underline-offset-4 hover:underline"
-            >
-              Painel da plataforma
-            </Link>
-          ) : null}
-          <SignOutButton />
-        </div>
-      </header>
+    <ParishShell
+      churchName={church.name}
+      email={user.email ?? ""}
+      isGlobalAdmin={Boolean(isGlobalAdmin)}
+    >
+      <ConsolePageHeader
+        title="Visão geral"
+        description="Abra a fila, acompanhe as sessões e compartilhe o QR Code com os fiéis."
+        actions={
+          <Link href="/admin/sessoes/nova" className={buttonVariants()}>
+            <PlusIcon data-icon="inline-start" />
+            Nova sessão
+          </Link>
+        }
+      />
 
-      <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Sessões</h2>
-        <div className="grid gap-4">
-          {(sessions ?? []).length === 0 ? (
-            <Card>
-              <CardContent className="py-8 text-sm text-muted-foreground">
-                Nenhuma sessão criada ainda.
-              </CardContent>
-            </Card>
-          ) : (
-            (sessions ?? []).map((session) => (
-              <Card key={session.id}>
-                <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <CardTitle>{session.name}</CardTitle>
-                    <CardDescription>
-                      /s/{session.slug}
-                      {session.starts_at
-                        ? ` · ${formatAdminDateTime(session.starts_at)}`
-                        : null}
-                    </CardDescription>
-                  </div>
-                  <Badge variant="outline">
-                    {sessionStatusLabel[session.status] ?? session.status}
-                  </Badge>
-                </CardHeader>
-                <CardContent>
-                  <Link
-                    href={`/admin/sessoes/${session.id}`}
-                    className={buttonVariants({ variant: "outline" })}
-                  >
-                    Abrir sessão
-                  </Link>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </div>
-      </section>
+      <ParishOverviewMetrics sessions={list} />
 
-      <Separator />
+      <section className="grid gap-4 lg:grid-cols-5">
+        <Card className="lg:col-span-3">
+          <CardHeader>
+            <CardTitle>Em operação</CardTitle>
+            <CardDescription>
+              Sessões com fila aberta ou entrada já encerrada.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {stats.live.length === 0 ? (
+              <p className="text-muted-foreground text-sm">
+                Nenhuma fila em andamento. Abra um rascunho ou crie uma nova
+                sessão.
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {stats.live.map((session) => (
+                  <li key={session.id}>
+                    <Link
+                      href={`/admin/sessoes/${session.id}`}
+                      className="hover:bg-muted/70 flex items-center justify-between gap-3 rounded-lg px-2 py-2"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate font-medium">{session.name}</p>
+                        <p className="text-muted-foreground text-xs">
+                          /s/{session.slug}
+                          {session.starts_at
+                            ? ` · ${formatAdminDateTime(session.starts_at)}`
+                            : null}
+                        </p>
+                      </div>
+                      <SessionStatusBadge status={session.status} />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
 
-      <section className="space-y-4">
-        <div>
-          <h2 className="text-xl font-semibold">Nova sessão</h2>
-          <p className="text-sm text-muted-foreground">
-            A sessão nasce como rascunho. Depois você abre a fila quando a
-            equipe estiver pronta.
-          </p>
-        </div>
-        <Card>
-          <CardContent className="pt-6">
-            <CreateSessionForm />
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Sessões recentes</CardTitle>
+            <CardDescription>
+              As últimas criadas nesta paróquia.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {recent.length === 0 ? (
+              <p className="text-muted-foreground text-sm">
+                Nenhuma sessão ainda.
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {recent.map((session) => (
+                  <li key={session.id}>
+                    <Link
+                      href={`/admin/sessoes/${session.id}`}
+                      className="hover:bg-muted/70 flex items-center justify-between gap-3 rounded-lg px-2 py-2"
+                    >
+                      <span className="truncate text-sm font-medium">
+                        {session.name}
+                      </span>
+                      <SessionStatusBadge status={session.status} />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {list.length > 0 ? (
+              <Link
+                href="/admin/sessoes"
+                className="text-muted-foreground hover:text-foreground mt-3 inline-block text-sm underline-offset-4 hover:underline"
+              >
+                Ver todas as sessões
+              </Link>
+            ) : null}
           </CardContent>
         </Card>
       </section>
-    </main>
+    </ParishShell>
   );
 }

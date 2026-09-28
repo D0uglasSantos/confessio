@@ -1,14 +1,19 @@
 # UI e superfícies
 
-| Rota | Superfície | Layout |
-|------|------------|--------|
-| `/s/[slug]` | Entrada do fiel | Mobile-first |
-| `/s/[slug]/minha-senha` | Acompanhamento do fiel | Mobile-first |
-| `/padre/[stationId]` | Painel do sacerdote | Mobile-first |
-| `/tv/[sessionSlug]` | Telão | Landscape, tipografia em `vw`/`vmin` (1080p+) |
-| `/admin` e `/admin/sessoes/[sessionId]` | Secretaria da paróquia | Desktop-first |
-| `/admin/global` | Administração da plataforma | Desktop-first |
-| `/` | Porta institucional (login da secretaria/plataforma) | Desktop-first, também legível no mobile |
+| Rota                         | Superfície                                           | Layout                                        |
+| ---------------------------- | ---------------------------------------------------- | --------------------------------------------- |
+| `/s/[slug]`                  | Entrada do fiel                                      | Mobile-first                                  |
+| `/s/[slug]/minha-senha`      | Acompanhamento do fiel                               | Mobile-first                                  |
+| `/padre/[stationId]`         | Painel do sacerdote                                  | Mobile-first                                  |
+| `/tv/[sessionSlug]`          | Telão                                                | Landscape, tipografia em `vw`/`vmin` (1080p+) |
+| `/admin`                     | Secretaria da paróquia — visão geral                 | Desktop-first                                 |
+| `/admin/sessoes`             | Lista e filtros de sessões                           | Desktop-first                                 |
+| `/admin/sessoes/nova`        | Cadastro de sessão                                   | Desktop-first                                 |
+| `/admin/sessoes/[sessionId]` | Operação da sessão                                   | Desktop-first                                 |
+| `/admin/global`              | Administração da plataforma — visão geral            | Desktop-first                                 |
+| `/admin/global/paroquias`    | Cadastro e gestão de paróquias                       | Desktop-first                                 |
+| `/admin/global/atividade`    | Auditoria da plataforma                              | Desktop-first                                 |
+| `/`                          | Porta institucional (login da secretaria/plataforma) | Desktop-first, também legível no mobile       |
 
 A home **não** lança fiel, padre ou TV. Essas superfícies chegam pelos QR/links da sessão.
 

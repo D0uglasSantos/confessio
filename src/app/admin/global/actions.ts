@@ -11,13 +11,15 @@ import {
   updateChurchSchema,
 } from "@/lib/validations/global";
 
+function revalidateGlobalAdmin() {
+  revalidatePath("/admin/global", "layout");
+}
+
 export type ActionResult =
-  | { ok: true; message?: string }
-  | { ok: false; message: string };
+  { ok: true; message?: string } | { ok: false; message: string };
 
 export type CreateChurchResult =
-  | { ok: true; churchId: string }
-  | { ok: false; message: string };
+  { ok: true; churchId: string } | { ok: false; message: string };
 
 export async function createChurchAction(
   _prev: CreateChurchResult | null,
@@ -49,11 +51,14 @@ export async function createChurchAction(
     const message =
       error?.code === "23505"
         ? "Já existe uma paróquia com esse slug."
-        : mapQueueError(error?.message, "Não foi possível cadastrar a paróquia.");
+        : mapQueueError(
+            error?.message,
+            "Não foi possível cadastrar a paróquia.",
+          );
     return { ok: false, message };
   }
 
-  revalidatePath("/admin/global");
+  revalidateGlobalAdmin();
   return { ok: true, churchId: data };
 }
 
@@ -90,7 +95,7 @@ export async function assignChurchAdminAction(
     };
   }
 
-  revalidatePath("/admin/global");
+  revalidateGlobalAdmin();
   return { ok: true, message: "Admin vinculado à paróquia." };
 }
 
@@ -126,11 +131,14 @@ export async function updateChurchAction(
     const message =
       error.code === "23505"
         ? "Já existe uma paróquia com esse slug."
-        : mapQueueError(error.message, "Não foi possível atualizar a paróquia.");
+        : mapQueueError(
+            error.message,
+            "Não foi possível atualizar a paróquia.",
+          );
     return { ok: false, message };
   }
 
-  revalidatePath("/admin/global");
+  revalidateGlobalAdmin();
   return { ok: true, message: "Paróquia atualizada." };
 }
 
@@ -169,7 +177,7 @@ export async function setChurchActiveAction(
     };
   }
 
-  revalidatePath("/admin/global");
+  revalidateGlobalAdmin();
   return {
     ok: true,
     message: isActive ? "Paróquia reativada." : "Paróquia desativada.",

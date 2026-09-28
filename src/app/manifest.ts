@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
       "Fila anônima e em tempo real para sessões de confissão em paróquias.",
     start_url: "/",
     display: "standalone",
-    background_color: "#f7f3ea",
-    theme_color: "#6b5344",
+    background_color: "#f8f3e8",
+    theme_color: "#4c3158",
     lang: "pt-BR",
     orientation: "portrait-primary",
     icons: [

@@ -1,11 +1,9 @@
 "use client";
 
+import { BrandMark } from "@/components/brand-mark";
 import { QrImage } from "@/components/qr-image";
 import { usePublicSession } from "@/hooks/use-public-session";
-import {
-  sessionStatusLabel,
-  stationStatusLabel,
-} from "@/lib/admin/labels";
+import { sessionStatusLabel, stationStatusLabel } from "@/lib/admin/labels";
 import { sessionPublicUrl } from "@/lib/app-url";
 import type { PublicStationState } from "@/lib/queue/types";
 import { cn } from "@/lib/utils";
@@ -16,7 +14,7 @@ export function TvBoardClient({ slug }: { slug: string }) {
   if (isLoading) {
     return (
       <main className="tv-shell">
-        <p className="m-auto text-[length:var(--tv-subtitle)] text-muted-foreground">
+        <p className="text-muted-foreground m-auto text-[length:var(--tv-subtitle)]">
           Carregando telão...
         </p>
       </main>
@@ -29,7 +27,7 @@ export function TvBoardClient({ slug }: { slug: string }) {
         <h1 className="font-heading text-[length:var(--tv-title)]">
           Telão indisponível
         </h1>
-        <p className="mt-4 text-[length:var(--tv-subtitle)] text-muted-foreground">
+        <p className="text-muted-foreground mt-4 text-[length:var(--tv-subtitle)]">
           {error ?? "Sessão não encontrada."}
         </p>
       </main>
@@ -48,9 +46,12 @@ export function TvBoardClient({ slug }: { slug: string }) {
   return (
     <main className="tv-shell">
       <header className="tv-header">
-        <div className="min-w-0">
-          <p className="tv-kicker">{session.church_name}</p>
-          <h1 className="font-heading tv-title truncate">{session.name}</h1>
+        <div className="flex min-w-0 items-center gap-4">
+          <BrandMark compact className="text-primary hidden sm:inline-flex" />
+          <div className="min-w-0">
+            <p className="tv-kicker">{session.church_name}</p>
+            <h1 className="font-heading tv-title truncate">{session.name}</h1>
+          </div>
         </div>
         <p className="tv-status shrink-0">
           {sessionStatusLabel[session.status]}
@@ -61,7 +62,9 @@ export function TvBoardClient({ slug }: { slug: string }) {
         {finished ? (
           <>
             <p className="tv-hero-label">Sessão encerrada</p>
-            <p className="font-heading tv-hero-code text-foreground">Obrigado</p>
+            <p className="font-heading tv-hero-code text-foreground">
+              Obrigado
+            </p>
           </>
         ) : draft ? (
           <>
@@ -104,7 +107,10 @@ export function TvBoardClient({ slug }: { slug: string }) {
       </section>
 
       <section
-        className={cn("tv-stations", stations.length >= 4 && "tv-stations-wrap")}
+        className={cn(
+          "tv-stations",
+          stations.length >= 4 && "tv-stations-wrap",
+        )}
         aria-label="Confessionários"
       >
         {stations.map((station) => {

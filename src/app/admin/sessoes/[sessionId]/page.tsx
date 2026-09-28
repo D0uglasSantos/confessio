@@ -2,13 +2,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AddStationForm } from "@/components/admin/add-station-form";
+import { ConsolePageHeader } from "@/components/admin/console-page-header";
 import { formatAdminDayTime, formatAdminTime } from "@/lib/admin/format";
 import { AdminSessionRealtime } from "@/components/admin/admin-session-realtime";
+import { ParishShell } from "@/components/admin/parish/parish-shell";
+import { SessionStatusBadge } from "@/components/admin/parish/session-status-badge";
 import { PrintTicketBatchForm } from "@/components/admin/print-ticket-batch-form";
 import { QrCodeCard } from "@/components/admin/qr-code-card";
 import { SessionLifecycleActions } from "@/components/admin/session-lifecycle-actions";
 import { SessionMetricsGrid } from "@/components/admin/session-metrics-grid";
-import { SignOutButton } from "@/components/admin/sign-out-button";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -18,17 +20,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { requireAdminChurch } from "@/lib/admin/church";
-import {
-  sessionStatusLabel,
-  stationStatusLabel,
-  ticketStatusLabel,
-} from "@/lib/admin/labels";
+import { stationStatusLabel, ticketStatusLabel } from "@/lib/admin/labels";
 import { parseAdminSessionState } from "@/lib/admin/metrics";
 import { stationAccessToken } from "@/lib/admin/station-access";
 import {
-  getAppUrl,
   sessionPublicUrl,
   sessionTvUrl,
   stationPriestUrl,
@@ -38,19 +34,24 @@ type AdminSessionPageProps = {
   params: Promise<{ sessionId: string }>;
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminSessionPage({
   params,
 }: AdminSessionPageProps) {
   const { sessionId } = await params;
-  const { supabase, church } = await requireAdminChurch();
+  const { supabase, church, user } = await requireAdminChurch();
 
-  const { data: session } = await supabase
-    .from("sessions")
-    .select(
-      "id, name, slug, status, ticket_prefix, starts_at, show_waiting_queue_on_tv, church_id",
-    )
-    .eq("id", sessionId)
-    .maybeSingle();
+  const [{ data: session }, { data: isGlobalAdmin }] = await Promise.all([
+    supabase
+      .from("sessions")
+      .select(
+        "id, name, slug, status, ticket_prefix, starts_at, show_waiting_queue_on_tv, church_id",
+      )
+      .eq("id", sessionId)
+      .maybeSingle(),
+    supabase.rpc("is_global_admin", { p_required_role: "viewer" }),
+  ]);
 
   if (!session || session.church_id !== church.id) {
     notFound();
@@ -90,115 +91,105 @@ export default async function AdminSessionPage({
 
   const publicUrl = sessionPublicUrl(session.slug);
   const tvUrl = sessionTvUrl(session.slug);
+  const hasPrintableStations = (stations ?? []).some((station) =>
+    stationAccessToken(station.station_access),
+  );
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-6 py-10">
+    <ParishShell
+      churchName={church.name}
+      email={user.email ?? ""}
+      isGlobalAdmin={Boolean(isGlobalAdmin)}
+    >
       <AdminSessionRealtime sessionId={session.id} />
 
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <Link
-            href="/admin"
-            className="text-sm text-muted-foreground underline-offset-4 hover:underline"
-          >
-            ← Voltar
-          </Link>
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            <h1 className="font-heading text-4xl">{session.name}</h1>
-            <Badge>{sessionStatusLabel[session.status] ?? session.status}</Badge>
-          </div>
-          <p className="mt-2 text-muted-foreground">
-            Prefixo {session.ticket_prefix} · /s/{session.slug}
-            {session.starts_at
-              ? ` · ${formatAdminDayTime(session.starts_at)}`
-              : null}
-          </p>
-        </div>
-        <SignOutButton />
-      </header>
+      <ConsolePageHeader
+        title={session.name}
+        description={`Prefixo ${session.ticket_prefix} · /s/${session.slug}${
+          session.starts_at ? ` · ${formatAdminDayTime(session.starts_at)}` : ""
+        }`}
+        actions={<SessionStatusBadge status={session.status} />}
+      />
 
       <SessionMetricsGrid metrics={metrics} />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Operação</CardTitle>
-          <CardDescription>
-            Abra a fila quando os sacerdotes estiverem prontos. Encerrar a
-            entrada impede novas senhas.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <SessionLifecycleActions
-            sessionId={session.id}
-            status={session.status}
-            showWaitingQueueOnTv={session.show_waiting_queue_on_tv}
-          />
-          <div className="mt-6 border-t border-border pt-5">
-            <h3 className="mb-2 font-medium">Imprimir senhas de papel</h3>
-            <p className="mb-4 text-sm text-muted-foreground">
-              Ao abrir a fila, imprima o lote. Todo mundo recebe um papel. Quem
-              tiver celular escaneia o QR do papel ou o da TV.
-            </p>
-            <PrintTicketBatchForm
+      <section className="grid gap-4 xl:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Operação</CardTitle>
+            <CardDescription>
+              Abra a fila quando os sacerdotes estiverem prontos. Encerrar a
+              entrada impede novas senhas.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <SessionLifecycleActions
               sessionId={session.id}
-              ticketPrefix={session.ticket_prefix}
-              disabled={session.status !== "OPEN"}
-              batches={printBatches ?? []}
+              status={session.status}
+              showWaitingQueueOnTv={session.show_waiting_queue_on_tv}
             />
-          </div>
-        </CardContent>
-      </Card>
+            <div className="border-t pt-5">
+              <h3 className="mb-1 font-medium">Senhas de papel</h3>
+              <p className="text-muted-foreground mb-4 text-sm">
+                Ao abrir a fila, imprima o lote. Quem tiver celular escaneia o
+                QR do papel ou o da TV.
+              </p>
+              <PrintTicketBatchForm
+                sessionId={session.id}
+                ticketPrefix={session.ticket_prefix}
+                disabled={session.status !== "OPEN"}
+                batches={printBatches ?? []}
+              />
+            </div>
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>QR Code e links</CardTitle>
-          <CardDescription>
-            Cartaz e TV usam o QR da sessão. O papel impresso tem um QR
-            próprio, ligado à senha daquela folha.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <QrCodeCard
-            url={publicUrl}
-            slug={session.slug}
-            posterHref={`/admin/sessoes/${session.id}/imprimir/cartaz`}
-          />
-          <div className="flex flex-wrap gap-2">
-            <a
-              href={publicUrl}
-              target="_blank"
-              rel="noreferrer"
-              className={buttonVariants({ variant: "outline" })}
-            >
-              Abrir página do fiel
-            </a>
-            <a
-              href={tvUrl}
-              target="_blank"
-              rel="noreferrer"
-              className={buttonVariants({ variant: "outline" })}
-            >
-              Abrir TV
-            </a>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            App local: {getAppUrl()}
-          </p>
-        </CardContent>
-      </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>QR Code e links</CardTitle>
+            <CardDescription>
+              Cartaz e TV usam o QR da sessão. O papel impresso tem um QR
+              próprio, ligado à senha daquela folha.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <QrCodeCard
+              url={publicUrl}
+              slug={session.slug}
+              posterHref={`/admin/sessoes/${session.id}/imprimir/cartaz`}
+            />
+            <div className="flex flex-wrap gap-2">
+              <a
+                href={publicUrl}
+                target="_blank"
+                rel="noreferrer"
+                className={buttonVariants({ variant: "outline" })}
+              >
+                Página do fiel
+              </a>
+              <a
+                href={tvUrl}
+                target="_blank"
+                rel="noreferrer"
+                className={buttonVariants({ variant: "outline" })}
+              >
+                Abrir TV
+              </a>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
 
       <section className="space-y-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-xl font-semibold">Confessionários</h2>
-            <p className="text-sm text-muted-foreground">
-              Imprima o cartão, cole na mesa. O sacerdote aponta a câmera e
-              entra no painel daquele posto.
+            <h2 className="font-heading text-lg">Confessionários</h2>
+            <p className="text-muted-foreground text-sm">
+              Imprima o cartão e cole na mesa. O sacerdote entra pelo QR daquele
+              posto.
             </p>
           </div>
-          {(stations ?? []).some((station) =>
-            stationAccessToken(station.station_access),
-          ) ? (
+          {hasPrintableStations ? (
             <Link
               href={`/admin/sessoes/${session.id}/imprimir/confessionarios`}
               target="_blank"
@@ -210,7 +201,7 @@ export default async function AdminSessionPage({
           ) : null}
         </div>
 
-        <div className="grid gap-4">
+        <div className="grid gap-3 md:grid-cols-2">
           {(stations ?? []).map((station) => {
             const token = stationAccessToken(station.station_access);
             const priestUrl = token
@@ -218,7 +209,7 @@ export default async function AdminSessionPage({
               : null;
 
             return (
-              <Card key={station.id}>
+              <Card key={station.id} size="sm">
                 <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
                   <div>
                     <CardTitle>{station.name}</CardTitle>
@@ -232,31 +223,32 @@ export default async function AdminSessionPage({
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {priestUrl ? (
-                    <>
-                      <p className="break-all text-sm text-muted-foreground">
-                        {priestUrl}
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        <a
-                          href={priestUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className={buttonVariants({ variant: "outline" })}
-                        >
-                          Abrir painel do padre
-                        </a>
-                        <Link
-                          href={`/admin/sessoes/${session.id}/imprimir/confessionarios/${station.id}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className={buttonVariants({ variant: "secondary" })}
-                        >
-                          Imprimir cartão
-                        </Link>
-                      </div>
-                    </>
+                    <div className="flex flex-wrap gap-2">
+                      <a
+                        href={priestUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={buttonVariants({
+                          variant: "outline",
+                          size: "sm",
+                        })}
+                      >
+                        Painel do padre
+                      </a>
+                      <Link
+                        href={`/admin/sessoes/${session.id}/imprimir/confessionarios/${station.id}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={buttonVariants({
+                          variant: "secondary",
+                          size: "sm",
+                        })}
+                      >
+                        Imprimir cartão
+                      </Link>
+                    </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-muted-foreground text-sm">
                       Token de acesso ainda não disponível.
                     </p>
                   )}
@@ -266,9 +258,7 @@ export default async function AdminSessionPage({
           })}
         </div>
 
-        <Separator />
-
-        <Card>
+        <Card size="sm">
           <CardHeader>
             <CardTitle>Adicionar confessionário</CardTitle>
           </CardHeader>
@@ -280,15 +270,15 @@ export default async function AdminSessionPage({
 
       <section className="space-y-3">
         <div>
-          <h2 className="text-xl font-semibold">Senhas</h2>
-          <p className="text-sm text-muted-foreground">
+          <h2 className="font-heading text-lg">Senhas</h2>
+          <p className="text-muted-foreground text-sm">
             Visão operacional da fila. Tokens anônimos não são exibidos.
           </p>
         </div>
         <Card>
           <CardContent className="overflow-x-auto p-0">
             <table className="w-full min-w-[36rem] text-left text-sm">
-              <thead className="border-b bg-muted/40 text-muted-foreground">
+              <thead className="bg-muted/40 text-muted-foreground border-b text-xs tracking-wide uppercase">
                 <tr>
                   <th className="px-4 py-3 font-medium">Senha</th>
                   <th className="px-4 py-3 font-medium">Status</th>
@@ -302,7 +292,7 @@ export default async function AdminSessionPage({
                   <tr>
                     <td
                       colSpan={5}
-                      className="px-4 py-8 text-center text-muted-foreground"
+                      className="text-muted-foreground px-4 py-8 text-center"
                     >
                       Nenhuma senha nesta sessão ainda.
                     </td>
@@ -316,15 +306,15 @@ export default async function AdminSessionPage({
                       <td className="px-4 py-3">
                         {ticketStatusLabel[ticket.status] ?? ticket.status}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground">
+                      <td className="text-muted-foreground px-4 py-3">
                         {formatAdminTime(ticket.created_at)}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground">
+                      <td className="text-muted-foreground px-4 py-3">
                         {ticket.called_at
                           ? formatAdminTime(ticket.called_at)
                           : "—"}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground">
+                      <td className="text-muted-foreground px-4 py-3">
                         {ticket.recall_count}
                       </td>
                     </tr>
@@ -335,6 +325,6 @@ export default async function AdminSessionPage({
           </CardContent>
         </Card>
       </section>
-    </main>
+    </ParishShell>
   );
 }

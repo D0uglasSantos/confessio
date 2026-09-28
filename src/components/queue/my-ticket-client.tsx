@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
+import { BrandMark } from "@/components/brand-mark";
 import { MobileShell } from "@/components/mobile-shell";
 import { CancelTicketDialog } from "@/components/queue/cancel-ticket-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -62,7 +63,7 @@ export function MyTicketClient({
     return (
       <MobileShell className="justify-center">
         <Card className="border-0 shadow-none sm:border sm:shadow-sm">
-          <CardContent className="py-12 text-center text-muted-foreground">
+          <CardContent className="text-muted-foreground py-12 text-center">
             {claiming ? "Abrindo sua senha..." : "Carregando sua senha..."}
           </CardContent>
         </Card>
@@ -143,10 +144,11 @@ export function MyTicketClient({
       <Card
         className={cn(
           "w-full border-0 shadow-none sm:border sm:shadow-sm",
-          isCalled && "border-primary bg-card ring-4 ring-primary/20 sm:border",
+          isCalled && "border-primary bg-card ring-primary/20 ring-4 sm:border",
         )}
       >
         <CardHeader className="space-y-4 px-1 text-center sm:px-6">
+          <BrandMark compact className="text-primary mx-auto" />
           <Badge
             variant={isCalled ? "default" : "secondary"}
             className="mx-auto w-fit text-sm"
@@ -158,7 +160,7 @@ export function MyTicketClient({
 
           {isCalled ? (
             <>
-              <CardTitle className="font-heading text-[clamp(2rem,9vw,3rem)] text-primary">
+              <CardTitle className="font-heading text-primary text-[clamp(2rem,9vw,3rem)]">
                 Sua vez!
               </CardTitle>
               <p className="font-heading text-[clamp(3.5rem,18vw,5.5rem)] leading-none font-semibold tracking-tight">
@@ -167,7 +169,7 @@ export function MyTicketClient({
               <CardDescription className="text-base sm:text-lg">
                 Dirija-se ao
               </CardDescription>
-              <p className="text-[clamp(1.35rem,6vw,1.875rem)] font-semibold leading-snug">
+              <p className="text-[clamp(1.35rem,6vw,1.875rem)] leading-snug font-semibold">
                 {remote.station_name ?? "confessionário indicado"}
               </p>
             </>
@@ -257,7 +259,7 @@ export function MyTicketClient({
 
           {(view === "WAITING" || view === "NEAR" || view === "NEXT") &&
           currentService?.current_public_code ? (
-            <p className="rounded-2xl bg-muted/60 px-4 py-3 text-center text-sm leading-relaxed text-muted-foreground">
+            <p className="bg-muted/60 text-muted-foreground rounded-2xl px-4 py-3 text-center text-sm leading-relaxed">
               Fila atual: {currentService.current_public_code} está sendo
               atendida
               {currentService.name ? ` em ${currentService.name}` : ""}.
@@ -304,11 +306,11 @@ function StatusBlock({
   wait?: number | null;
 }) {
   return (
-    <div className="space-y-2 rounded-2xl bg-muted/60 p-4 text-center">
+    <div className="bg-muted/60 space-y-2 rounded-2xl p-4 text-center">
       <p className="text-base font-medium">{title}</p>
-      <p className="text-sm leading-relaxed text-muted-foreground">{body}</p>
+      <p className="text-muted-foreground text-sm leading-relaxed">{body}</p>
       {wait !== undefined ? (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           Tempo estimado:{" "}
           {wait === null
             ? "Calculando tempo de espera..."

@@ -31,7 +31,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  themeColor: "#6b5344",
+  themeColor: "#4c3158",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover" as const,
@@ -45,7 +45,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${sourceSerif.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="flex min-h-full flex-col bg-background text-foreground">
+      <body className="bg-background text-foreground flex min-h-full flex-col">
         <Providers>{children}</Providers>
       </body>
     </html>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { BrandMark } from "@/components/brand-mark";
 import { LoginForm } from "@/components/admin/login-form";
 import {
   Card,
@@ -19,11 +20,17 @@ export default async function AdminLoginPage({
   const params = await searchParams;
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 py-12">
-      <Card>
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-5 py-10 sm:px-6 sm:py-12">
+      <Link href="/" className="text-primary mb-8 w-fit">
+        <BrandMark />
+      </Link>
+      <Card className="brand-panel ring-primary/10 border-0 py-6">
         <CardHeader>
-          <CardTitle className="font-heading text-3xl">Administração</CardTitle>
-          <CardDescription>
+          <p className="brand-kicker mb-2">Acesso protegido</p>
+          <CardTitle className="font-heading text-4xl font-semibold tracking-[-0.025em]">
+            Administração
+          </CardTitle>
+          <CardDescription className="max-w-sm text-base leading-relaxed">
             Login da secretaria da paróquia e da administração da plataforma.
             Fiel e sacerdote continuam sem conta.
           </CardDescription>
@@ -32,7 +39,7 @@ export default async function AdminLoginPage({
           <LoginForm errorHint={params.error} />
           <Link
             href="/"
-            className="block text-sm text-muted-foreground underline-offset-4 hover:underline"
+            className="text-primary block text-sm font-medium underline-offset-4 hover:underline"
           >
             Voltar ao início
           </Link>

@@ -60,8 +60,8 @@ export function AssignChurchAdminDialog({
         <DialogHeader>
           <DialogTitle>Vincular admin — {churchName}</DialogTitle>
           <DialogDescription>
-            Informe o ID de usuário (auth.users.id) já criado no Supabase
-            Auth. Esse usuário passa a administrar esta paróquia em{" "}
+            Informe o ID de usuário (auth.users.id) já criado no Supabase Auth.
+            Esse usuário passa a administrar esta paróquia em{" "}
             <code>/admin</code>.
           </DialogDescription>
         </DialogHeader>
