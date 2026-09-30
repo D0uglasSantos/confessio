@@ -50,7 +50,8 @@ export function LoginForm({ errorHint }: { errorHint?: string }) {
       aria-busy={submitting}
       onSubmit={(event) => {
         if (!event.currentTarget.checkValidity()) return;
-        setSubmitting(true);
+        // Keep named fields enabled so the native POST still sends them.
+        queueMicrotask(() => setSubmitting(true));
       }}
     >
       {errorMessage ? (
@@ -69,7 +70,6 @@ export function LoginForm({ errorHint }: { errorHint?: string }) {
           defaultValue={localDev ? "admin@paroquia.local" : undefined}
           placeholder={localDev ? undefined : "e-mail do Auth no Supabase"}
           required
-          disabled={submitting}
         />
       </div>
 
@@ -84,7 +84,6 @@ export function LoginForm({ errorHint }: { errorHint?: string }) {
             defaultValue={localDev ? "admin123" : undefined}
             className="pr-9"
             required
-            disabled={submitting}
           />
           <Button
             type="button"
@@ -94,7 +93,6 @@ export function LoginForm({ errorHint }: { errorHint?: string }) {
             onClick={() => setShowPassword((visible) => !visible)}
             aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
             aria-pressed={showPassword}
-            disabled={submitting}
           >
             {showPassword ? <EyeOffIcon /> : <EyeIcon />}
           </Button>
