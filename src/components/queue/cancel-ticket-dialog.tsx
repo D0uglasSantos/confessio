@@ -93,7 +93,7 @@ export function CancelTicketDialog({
           <Button
             variant="destructive"
             className="h-12 touch-manipulation"
-            disabled={busy}
+            loading={busy}
             onClick={cancel}
           >
             {pending ? "Saindo..." : "Confirmar saída"}

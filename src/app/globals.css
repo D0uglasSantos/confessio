@@ -792,8 +792,35 @@
   color: #686169;
 }
 
+@keyframes nav-progress {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(420%);
+  }
+}
+
+.nav-progress-bar {
+  animation: nav-progress 1.1s ease-in-out infinite;
+}
+
+a[data-loading="true"],
+button[data-loading="true"] {
+  cursor: progress;
+}
+
+a[data-loading="true"] {
+  opacity: 0.65;
+}
+
+body[data-navigating] {
+  cursor: progress;
+}
+
 @media print {
   .print-toolbar,
+  .nav-progress,
   [data-sonner-toaster] {
     display: none !important;
   }

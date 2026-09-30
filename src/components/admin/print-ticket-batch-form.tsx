@@ -5,6 +5,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 
 import { issuePaperTicketsAction } from "@/app/admin/actions";
+import { startNavigationProgress } from "@/components/navigation-progress";
 import { useInFlightLock } from "@/hooks/use-in-flight-lock";
 import { formatPublicCode } from "@/lib/queue/ticket";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -52,6 +53,7 @@ export function PrintTicketBatchForm({
         const printUrl = `/admin/sessoes/${sessionId}/imprimir/lote/${result.batchId}`;
         const opened = window.open(printUrl, "_blank", "noopener,noreferrer");
         if (!opened) {
+          startNavigationProgress();
           window.location.href = printUrl;
         }
       } finally {
@@ -84,7 +86,8 @@ export function PrintTicketBatchForm({
       <Button
         type="button"
         size="lg"
-        disabled={disabled || pending}
+        loading={pending}
+        disabled={disabled}
         onClick={issue}
       >
         {pending ? "Gerando senhas..." : `Imprimir ${count} senhas`}

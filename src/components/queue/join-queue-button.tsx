@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { startNavigationProgress } from "@/components/navigation-progress";
 import { useInFlightLock } from "@/hooks/use-in-flight-lock";
 import { useTicket } from "@/hooks/use-ticket";
 import { Button } from "@/components/ui/button";
@@ -70,6 +71,7 @@ export function JoinQueueButton({
         });
 
         toast.success(`Sua senha é ${fielTicket.public_code}`);
+        startNavigationProgress();
         router.push(`/s/${slug}/minha-senha`);
       } finally {
         lock.release();
@@ -88,7 +90,8 @@ export function JoinQueueButton({
         type="button"
         size="lg"
         className="h-16 w-full touch-manipulation text-lg font-semibold active:scale-[0.99]"
-        disabled={disabled || pending}
+        loading={pending}
+        disabled={disabled}
         onClick={join}
       >
         {pending ? "Entrando na fila..." : "Entrar na fila"}

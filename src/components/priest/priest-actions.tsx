@@ -27,14 +27,17 @@ export function PriestActions({
   state,
   onDone,
 }: PriestActionsProps) {
-  const [pending, startTransition] = useTransition();
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const [, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const lock = useInFlightLock();
+  const pending = pendingAction !== null;
 
   const { station, current_ticket: ticket, waiting_count } = state;
   const status = station.status;
 
   function run(
+    actionKey: string,
     label: string,
     action: () => Promise<{ error: { message: string } | null }>,
     options?: { confirm?: string },
@@ -46,6 +49,7 @@ export function PriestActions({
       return;
     }
 
+    setPendingAction(actionKey);
     startTransition(async () => {
       try {
         setError(null);
@@ -64,6 +68,7 @@ export function PriestActions({
         toast.success(label);
         await onDone();
       } finally {
+        setPendingAction(null);
         lock.release();
       }
     });
@@ -85,16 +90,17 @@ export function PriestActions({
             type="button"
             size="lg"
             className={primaryBtn}
+            loading={pendingAction === "call"}
             disabled={pending || waiting_count === 0}
             onClick={() =>
-              run("Próxima senha chamada", async () =>
+              run("call", "Próxima senha chamada", async () =>
                 createAnonClient().rpc("call_next_ticket", auth),
               )
             }
           >
             {waiting_count === 0
               ? "Fila vazia"
-              : pending
+              : pendingAction === "call"
                 ? "Chamando..."
                 : `Chamar próximo (${waiting_count})`}
           </Button>
@@ -103,14 +109,15 @@ export function PriestActions({
             size="lg"
             variant="outline"
             className={secondaryBtn}
+            loading={pendingAction === "pause"}
             disabled={pending}
             onClick={() =>
-              run("Confessionário pausado", async () =>
+              run("pause", "Confessionário pausado", async () =>
                 createAnonClient().rpc("pause_station", auth),
               )
             }
           >
-            Pausar
+            {pendingAction === "pause" ? "Pausando..." : "Pausar"}
           </Button>
         </div>
       ) : null}
@@ -121,9 +128,10 @@ export function PriestActions({
             type="button"
             size="lg"
             className={primaryBtn}
+            loading={pendingAction === "start"}
             disabled={pending}
             onClick={() =>
-              run("Atendimento iniciado", async () =>
+              run("start", "Atendimento iniciado", async () =>
                 createAnonClient().rpc("start_service", {
                   ...auth,
                   p_ticket_id: ticket.id,
@@ -131,16 +139,17 @@ export function PriestActions({
               )
             }
           >
-            {pending ? "Iniciando..." : "Iniciar atendimento"}
+            {pendingAction === "start" ? "Iniciando..." : "Iniciar atendimento"}
           </Button>
           <Button
             type="button"
             size="lg"
             variant="secondary"
             className={secondaryBtn}
+            loading={pendingAction === "recall"}
             disabled={pending}
             onClick={() =>
-              run("Senha chamada novamente", async () =>
+              run("recall", "Senha chamada novamente", async () =>
                 createAnonClient().rpc("recall_ticket", {
                   ...auth,
                   p_ticket_id: ticket.id,
@@ -148,16 +157,18 @@ export function PriestActions({
               )
             }
           >
-            Chamar novamente
+            {pendingAction === "recall" ? "Chamando..." : "Chamar novamente"}
           </Button>
           <Button
             type="button"
             size="lg"
             variant="destructive"
             className={secondaryBtn}
+            loading={pendingAction === "noshow"}
             disabled={pending}
             onClick={() =>
               run(
+                "noshow",
                 "Marcado como não compareceu",
                 async () =>
                   createAnonClient().rpc("mark_no_show", {
@@ -171,7 +182,7 @@ export function PriestActions({
               )
             }
           >
-            Não compareceu
+            {pendingAction === "noshow" ? "Registrando..." : "Não compareceu"}
           </Button>
         </div>
       ) : null}
@@ -181,9 +192,11 @@ export function PriestActions({
           type="button"
           size="lg"
           className={primaryBtn}
+          loading={pendingAction === "finish"}
           disabled={pending}
           onClick={() =>
             run(
+              "finish",
               "Atendimento finalizado",
               async () =>
                 createAnonClient().rpc("finish_service", {
@@ -196,7 +209,7 @@ export function PriestActions({
             )
           }
         >
-          {pending ? "Finalizando..." : "Finalizar atendimento"}
+          {pendingAction === "finish" ? "Finalizando..." : "Finalizar atendimento"}
         </Button>
       ) : null}
 
@@ -205,14 +218,14 @@ export function PriestActions({
           type="button"
           size="lg"
           className={primaryBtn}
-          disabled={pending}
+          loading={pendingAction === "resume"}
           onClick={() =>
-            run("Confessionário retomado", async () =>
+            run("resume", "Confessionário retomado", async () =>
               createAnonClient().rpc("resume_station", auth),
             )
           }
         >
-          {pending ? "Retomando..." : "Retomar"}
+          {pendingAction === "resume" ? "Retomando..." : "Retomar"}
         </Button>
       ) : null}
 

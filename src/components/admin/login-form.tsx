@@ -23,25 +23,36 @@ const LOGIN_ERRORS: Record<string, string> = {
   unexpected: adminSignInMessage("unexpected"),
 };
 
-function SubmitButton() {
+function SubmitButton({ submitting }: { submitting: boolean }) {
   const { pending } = useFormStatus();
+  const loading = pending || submitting;
 
   return (
-    <Button type="submit" className="w-full" size="lg" disabled={pending}>
-      {pending ? "Entrando..." : "Entrar"}
+    <Button type="submit" className="w-full" size="lg" loading={loading}>
+      {loading ? "Entrando..." : "Entrar"}
     </Button>
   );
 }
 
 export function LoginForm({ errorHint }: { errorHint?: string }) {
   const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const localDev = isLocalSupabase();
   const errorMessage = errorHint
     ? (LOGIN_ERRORS[errorHint] ?? LOGIN_ERRORS.unexpected)
     : null;
 
   return (
-    <form action="/api/admin/login" method="post" className="space-y-4">
+    <form
+      action="/api/admin/login"
+      method="post"
+      className="space-y-4"
+      aria-busy={submitting}
+      onSubmit={(event) => {
+        if (!event.currentTarget.checkValidity()) return;
+        setSubmitting(true);
+      }}
+    >
       {errorMessage ? (
         <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
           {errorMessage}
@@ -58,6 +69,7 @@ export function LoginForm({ errorHint }: { errorHint?: string }) {
           defaultValue={localDev ? "admin@paroquia.local" : undefined}
           placeholder={localDev ? undefined : "e-mail do Auth no Supabase"}
           required
+          disabled={submitting}
         />
       </div>
 
@@ -72,6 +84,7 @@ export function LoginForm({ errorHint }: { errorHint?: string }) {
             defaultValue={localDev ? "admin123" : undefined}
             className="pr-9"
             required
+            disabled={submitting}
           />
           <Button
             type="button"
@@ -81,13 +94,14 @@ export function LoginForm({ errorHint }: { errorHint?: string }) {
             onClick={() => setShowPassword((visible) => !visible)}
             aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
             aria-pressed={showPassword}
+            disabled={submitting}
           >
             {showPassword ? <EyeOffIcon /> : <EyeIcon />}
           </Button>
         </div>
       </div>
 
-      <SubmitButton />
+      <SubmitButton submitting={submitting} />
 
       <p className="text-center text-sm">
         <Link

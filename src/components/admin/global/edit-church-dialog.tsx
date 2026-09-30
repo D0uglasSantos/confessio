@@ -117,7 +117,7 @@ export function EditChurchDialog({
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={pending}>
+            <Button type="submit" loading={pending}>
               {pending ? "Salvando..." : "Salvar"}
             </Button>
           </DialogFooter>

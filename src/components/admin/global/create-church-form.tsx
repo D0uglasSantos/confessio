@@ -72,7 +72,7 @@ export function CreateChurchForm({ onSuccess }: { onSuccess?: () => void }) {
           placeholder="https://..."
         />
       </div>
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" loading={pending}>
         {pending ? "Cadastrando..." : "Cadastrar paróquia"}
       </Button>
     </form>

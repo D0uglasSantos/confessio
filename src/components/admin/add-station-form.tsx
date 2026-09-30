@@ -37,7 +37,7 @@ export function AddStationForm({ sessionId }: { sessionId: string }) {
         <Input id="priest-name" name="priestName" placeholder="Pe. Nome" />
       </div>
       <div className="flex items-end">
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" loading={pending}>
           {pending ? "Salvando..." : "Adicionar"}
         </Button>
       </div>

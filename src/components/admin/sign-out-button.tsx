@@ -1,17 +1,28 @@
 "use client";
 
+import { useTransition } from "react";
+
 import { signOutAdmin } from "@/app/admin/actions";
+import { startNavigationProgress } from "@/components/navigation-progress";
 import { Button } from "@/components/ui/button";
 
 export function SignOutButton({ className }: { className?: string }) {
+  const [pending, startTransition] = useTransition();
+
   return (
     <Button
       type="button"
       variant="ghost"
       className={className}
-      onClick={() => signOutAdmin()}
+      loading={pending}
+      onClick={() => {
+        startNavigationProgress();
+        startTransition(() => {
+          void signOutAdmin();
+        });
+      }}
     >
-      Sair
+      {pending ? "Saindo..." : "Sair"}
     </Button>
   );
 }

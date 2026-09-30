@@ -86,7 +86,7 @@ export function AssignChurchAdminDialog({
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={pending}>
+            <Button type="submit" loading={pending}>
               {pending ? "Vinculando..." : "Vincular"}
             </Button>
           </DialogFooter>

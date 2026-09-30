@@ -1,6 +1,7 @@
 "use client";
 
 import { BrandMark } from "@/components/brand-mark";
+import { MobileLoading } from "@/components/loading-state";
 import { MobileShell } from "@/components/mobile-shell";
 import { PriestActions } from "@/components/priest/priest-actions";
 import { Badge } from "@/components/ui/badge";
@@ -31,15 +32,7 @@ export function PriestPanelClient({
   );
 
   if (isLoading) {
-    return (
-      <MobileShell className="justify-center">
-        <Card className="border-0 shadow-none sm:border sm:shadow-sm">
-          <CardContent className="text-muted-foreground py-12 text-center">
-            Carregando confessionário...
-          </CardContent>
-        </Card>
-      </MobileShell>
-    );
+    return <MobileLoading label="Carregando confessionário..." />;
   }
 
   if (error || !state || !accessToken) {

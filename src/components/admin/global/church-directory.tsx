@@ -15,6 +15,7 @@ import {
 } from "@/components/admin/global/church-helpers";
 import { EditChurchDialog } from "@/components/admin/global/edit-church-dialog";
 import { SetChurchActiveButton } from "@/components/admin/global/set-church-active-button";
+import { startNavigationProgress } from "@/components/navigation-progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -44,6 +45,7 @@ export function ChurchDirectory({
       params.set("filtro", next);
     }
     const search = params.toString();
+    startNavigationProgress();
     router.replace(
       search ? `/admin/global/paroquias?${search}` : "/admin/global/paroquias",
       { scroll: false },

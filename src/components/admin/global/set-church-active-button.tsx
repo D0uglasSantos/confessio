@@ -48,7 +48,8 @@ export function SetChurchActiveButton({
       type="button"
       variant={isActive ? "destructive" : "outline"}
       size="sm"
-      disabled={pending || (isActive && hasActiveSession)}
+      loading={pending}
+      disabled={isActive && hasActiveSession}
       title={
         isActive && hasActiveSession
           ? "Encerre as sessões ativas antes de desativar."
