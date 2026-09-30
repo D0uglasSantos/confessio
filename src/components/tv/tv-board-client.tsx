@@ -1,6 +1,7 @@
 "use client";
 
 import { BrandMark } from "@/components/brand-mark";
+import { PulseBlock } from "@/components/loading-state";
 import { QrImage } from "@/components/qr-image";
 import { usePublicSession } from "@/hooks/use-public-session";
 import { sessionStatusLabel, stationStatusLabel } from "@/lib/admin/labels";
@@ -13,10 +14,9 @@ export function TvBoardClient({ slug }: { slug: string }) {
 
   if (isLoading) {
     return (
-      <main className="tv-shell">
-        <p className="text-muted-foreground m-auto text-[length:var(--tv-subtitle)]">
-          Carregando telão...
-        </p>
+      <main className="tv-shell" aria-busy="true">
+        <p className="sr-only">Carregando telão...</p>
+        <PulseBlock className="m-auto h-[22vmin] w-[46vw] rounded-[2vw]" />
       </main>
     );
   }

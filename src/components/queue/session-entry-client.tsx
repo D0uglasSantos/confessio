@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 import { BrandMark } from "@/components/brand-mark";
+import { MobileLoading } from "@/components/loading-state";
 import { MobileShell } from "@/components/mobile-shell";
 import { JoinQueueButton } from "@/components/queue/join-queue-button";
 import { Badge } from "@/components/ui/badge";
@@ -42,13 +43,9 @@ export function SessionEntryClient({
 
   if (isLoading || claiming) {
     return (
-      <MobileShell className="justify-center">
-        <Card className="border-0 shadow-none sm:border sm:shadow-sm">
-          <CardContent className="text-muted-foreground py-12 text-center">
-            {claiming ? "Abrindo sua senha..." : "Carregando sessão..."}
-          </CardContent>
-        </Card>
-      </MobileShell>
+      <MobileLoading
+        label={claiming ? "Abrindo sua senha..." : "Carregando sessão..."}
+      />
     );
   }
 

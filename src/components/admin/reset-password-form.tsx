@@ -55,7 +55,7 @@ export function ResetPasswordForm({ hasSession }: { hasSession: boolean }) {
         />
       </div>
 
-      <Button type="submit" className="w-full" size="lg" disabled={pending}>
+      <Button type="submit" className="w-full" size="lg" loading={pending}>
         {pending ? "Salvando..." : "Salvar nova senha"}
       </Button>
     </form>

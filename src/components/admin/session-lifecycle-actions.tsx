@@ -11,6 +11,7 @@ import {
 } from "@/app/admin/actions";
 import { useInFlightLock } from "@/hooks/use-in-flight-lock";
 import { Button } from "@/components/ui/button";
+import { Loader2Icon } from "lucide-react";
 import type { Database } from "@/types/database";
 
 type SessionStatus = Database["public"]["Enums"]["session_status"];
@@ -66,6 +67,7 @@ export function SessionLifecycleActions({
         {status === "DRAFT" ? (
           <Button
             size="lg"
+            loading={pendingAction === "open"}
             disabled={busy}
             onClick={() =>
               run("open", () => openSessionAction(sessionId), "Fila aberta.")
@@ -79,6 +81,7 @@ export function SessionLifecycleActions({
           <Button
             size="lg"
             variant="secondary"
+            loading={pendingAction === "close"}
             disabled={busy}
             onClick={() =>
               run(
@@ -96,6 +99,7 @@ export function SessionLifecycleActions({
           <Button
             size="lg"
             variant="outline"
+            loading={pendingAction === "finish"}
             disabled={busy}
             onClick={() =>
               run(
@@ -162,7 +166,14 @@ export function SessionLifecycleActions({
             });
           }}
         />
-        Exibir próximas senhas na TV
+        {pendingAction === "tv" ? (
+          <span className="inline-flex items-center gap-2">
+            <Loader2Icon className="size-3.5 animate-spin" aria-hidden="true" />
+            Salvando...
+          </span>
+        ) : (
+          "Exibir próximas senhas na TV"
+        )}
       </label>
     </div>
   );

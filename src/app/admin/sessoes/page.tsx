@@ -6,8 +6,8 @@ import { ConsolePageHeader } from "@/components/admin/console-page-header";
 import { ParishShell } from "@/components/admin/parish/parish-shell";
 import { SessionDirectory } from "@/components/admin/parish/session-directory";
 import type { ParishSessionSummary } from "@/components/admin/parish/session-helpers";
+import { PanelLoading } from "@/components/loading-state";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { requireAdminChurch } from "@/lib/admin/church";
 
 export const dynamic = "force-dynamic";
@@ -56,11 +56,5 @@ export default async function AdminSessionsPage() {
 }
 
 function SessionsFallback() {
-  return (
-    <Card>
-      <CardContent className="text-muted-foreground py-8 text-sm">
-        Carregando sessões...
-      </CardContent>
-    </Card>
-  );
+  return <PanelLoading label="Carregando sessões..." />;
 }

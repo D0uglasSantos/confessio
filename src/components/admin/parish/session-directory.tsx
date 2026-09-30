@@ -14,6 +14,7 @@ import {
   type ParishSessionSummary,
 } from "@/components/admin/parish/session-helpers";
 import { SessionStatusBadge } from "@/components/admin/parish/session-status-badge";
+import { startNavigationProgress } from "@/components/navigation-progress";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -41,6 +42,7 @@ export function SessionDirectory({
       params.set("filtro", next);
     }
     const search = params.toString();
+    startNavigationProgress();
     router.replace(search ? `/admin/sessoes?${search}` : "/admin/sessoes", {
       scroll: false,
     });

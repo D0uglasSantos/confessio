@@ -7,6 +7,7 @@ import {
   createSessionAction,
   type CreateSessionResult,
 } from "@/app/admin/actions";
+import { startNavigationProgress } from "@/components/navigation-progress";
 import { generateSessionSlug } from "@/lib/admin/labels";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +41,7 @@ export function CreateSessionForm() {
 
   useEffect(() => {
     if (!state?.ok) return;
+    startNavigationProgress();
     router.push(`/admin/sessoes/${state.sessionId}`);
   }, [router, state]);
 
@@ -178,7 +180,7 @@ export function CreateSessionForm() {
         </div>
       </div>
 
-      <Button type="submit" size="lg" disabled={pending || !!state?.ok}>
+      <Button type="submit" size="lg" loading={pending || !!state?.ok}>
         {state?.ok ? "Abrindo sessão..." : pending ? "Criando..." : "Criar sessão"}
       </Button>
     </form>

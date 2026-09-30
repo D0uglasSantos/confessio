@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { BrandMark } from "@/components/brand-mark";
+import { MobileLoading } from "@/components/loading-state";
 import { MobileShell } from "@/components/mobile-shell";
 import { CancelTicketDialog } from "@/components/queue/cancel-ticket-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -61,13 +62,9 @@ export function MyTicketClient({
 
   if (sessionLoading || isLoading || claiming) {
     return (
-      <MobileShell className="justify-center">
-        <Card className="border-0 shadow-none sm:border sm:shadow-sm">
-          <CardContent className="text-muted-foreground py-12 text-center">
-            {claiming ? "Abrindo sua senha..." : "Carregando sua senha..."}
-          </CardContent>
-        </Card>
-      </MobileShell>
+      <MobileLoading
+        label={claiming ? "Abrindo sua senha..." : "Carregando sua senha..."}
+      />
     );
   }
 
