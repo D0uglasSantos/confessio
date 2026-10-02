@@ -9,6 +9,11 @@ export type ParishSessionSummary = {
   status: ParishSessionStatus;
   starts_at: string | null;
   created_at: string;
+  ends_at?: string | null;
+  entry_opened_at?: string | null;
+  finished_at?: string | null;
+  tickets_issued?: number;
+  tickets_completed?: number;
 };
 
 export type SessionDirectoryFilter =

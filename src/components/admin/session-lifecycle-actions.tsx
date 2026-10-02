@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import {
@@ -21,22 +21,19 @@ export function SessionLifecycleActions({
   sessionId,
   status,
   showWaitingQueueOnTv,
+  mode = "all",
 }: {
   sessionId: string;
   status: SessionStatus;
   showWaitingQueueOnTv: boolean;
+  mode?: "all" | "primary" | "tv";
 }) {
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [, startTransition] = useTransition();
-  const [tvEnabled, setTvEnabled] = useState(showWaitingQueueOnTv);
+  const [tvOverride, setTvOverride] = useState<boolean | null>(null);
   const lock = useInFlightLock();
   const busy = pendingAction !== null;
-
-  useEffect(() => {
-    if (pendingAction === null) {
-      setTvEnabled(showWaitingQueueOnTv);
-    }
-  }, [pendingAction, showWaitingQueueOnTv]);
+  const tvEnabled = tvOverride ?? showWaitingQueueOnTv;
 
   function run(
     actionKey: Exclude<PendingAction, "tv" | null>,
@@ -61,120 +58,132 @@ export function SessionLifecycleActions({
     });
   }
 
+  const showPrimary = mode !== "tv";
+  const showTv = mode !== "primary";
+
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap gap-2">
-        {status === "DRAFT" ? (
-          <Button
-            size="lg"
-            loading={pendingAction === "open"}
-            disabled={busy}
-            onClick={() =>
-              run("open", () => openSessionAction(sessionId), "Fila aberta.")
-            }
-          >
-            {pendingAction === "open" ? "Abrindo..." : "Abrir fila"}
-          </Button>
-        ) : null}
-
-        {status === "OPEN" ? (
-          <Button
-            size="lg"
-            variant="secondary"
-            loading={pendingAction === "close"}
-            disabled={busy}
-            onClick={() =>
-              run(
-                "close",
-                () => closeEntryAction(sessionId),
-                "Entrada encerrada.",
-              )
-            }
-          >
-            {pendingAction === "close" ? "Encerrando..." : "Encerrar entrada"}
-          </Button>
-        ) : null}
-
-        {status === "OPEN" || status === "ENTRY_CLOSED" ? (
-          <Button
-            size="lg"
-            variant="outline"
-            loading={pendingAction === "finish"}
-            disabled={busy}
-            onClick={() =>
-              run(
-                "finish",
-                async () => {
-                  const first = await finishSessionAction(sessionId, false);
-                  if (
-                    !first.ok &&
-                    first.message?.includes("ticket") &&
-                    window.confirm(
-                      `${first.message}\n\nDeseja encerrar mesmo assim?`,
-                    )
-                  ) {
-                    return finishSessionAction(sessionId, true);
-                  }
-                  return first;
-                },
-                "Sessão encerrada.",
-              )
-            }
-          >
-            {pendingAction === "finish" ? "Finalizando..." : "Finalizar sessão"}
-          </Button>
-        ) : null}
-      </div>
-
-      <label className="flex items-center gap-2 text-sm text-muted-foreground">
-        <input
-          type="checkbox"
-          className="size-4 rounded border-input"
-          checked={tvEnabled}
-          disabled={busy}
-          onChange={(event) => {
-            const next = event.target.checked;
-            const previous = tvEnabled;
-            setTvEnabled(next);
-
-            if (!lock.tryAcquire()) {
-              setTvEnabled(previous);
-              return;
-            }
-
-            setPendingAction("tv");
-            startTransition(async () => {
-              try {
-                const result = await toggleWaitingQueueOnTvAction(
-                  sessionId,
-                  next,
-                );
-                if (!result.ok) {
-                  setTvEnabled(previous);
-                  toast.error(
-                    result.message ?? "Não foi possível atualizar a TV.",
-                  );
-                  return;
-                }
-                toast.success(
-                  result.message ?? "Preferência da TV atualizada.",
-                );
-              } finally {
-                setPendingAction(null);
-                lock.release();
+      {showPrimary ? (
+        <div className="flex flex-wrap gap-2">
+          {status === "DRAFT" ? (
+            <Button
+              size="lg"
+              loading={pendingAction === "open"}
+              disabled={busy}
+              onClick={() =>
+                run("open", () => openSessionAction(sessionId), "Fila aberta.")
               }
-            });
-          }}
-        />
-        {pendingAction === "tv" ? (
-          <span className="inline-flex items-center gap-2">
-            <Loader2Icon className="size-3.5 animate-spin" aria-hidden="true" />
-            Salvando...
-          </span>
-        ) : (
-          "Exibir próximas senhas na TV"
-        )}
-      </label>
+            >
+              {pendingAction === "open" ? "Abrindo..." : "Abrir fila"}
+            </Button>
+          ) : null}
+
+          {status === "OPEN" ? (
+            <Button
+              size="lg"
+              variant="secondary"
+              loading={pendingAction === "close"}
+              disabled={busy}
+              onClick={() =>
+                run(
+                  "close",
+                  () => closeEntryAction(sessionId),
+                  "Entrada encerrada.",
+                )
+              }
+            >
+              {pendingAction === "close" ? "Encerrando..." : "Encerrar entrada"}
+            </Button>
+          ) : null}
+
+          {status === "OPEN" || status === "ENTRY_CLOSED" ? (
+            <Button
+              size="lg"
+              variant="outline"
+              loading={pendingAction === "finish"}
+              disabled={busy}
+              onClick={() =>
+                run(
+                  "finish",
+                  async () => {
+                    const first = await finishSessionAction(sessionId, false);
+                    if (
+                      !first.ok &&
+                      first.message?.includes("senha") &&
+                      window.confirm(
+                        `${first.message}\n\nDeseja encerrar mesmo assim?`,
+                      )
+                    ) {
+                      return finishSessionAction(sessionId, true);
+                    }
+                    return first;
+                  },
+                  "Sessão encerrada.",
+                )
+              }
+            >
+              {pendingAction === "finish" ? "Finalizando..." : "Encerrar sessão"}
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
+
+      {showTv ? (
+        <label className="flex items-start gap-3 rounded-xl border border-border/80 bg-card px-3 py-3 text-sm">
+          <input
+            type="checkbox"
+            className="mt-0.5 size-4 rounded border-input"
+            checked={tvEnabled}
+            disabled={busy}
+            onChange={(event) => {
+              const next = event.target.checked;
+              const previous = tvEnabled;
+              setTvOverride(next);
+
+              if (!lock.tryAcquire()) {
+                setTvOverride(previous);
+                return;
+              }
+
+              setPendingAction("tv");
+              startTransition(async () => {
+                try {
+                  const result = await toggleWaitingQueueOnTvAction(
+                    sessionId,
+                    next,
+                  );
+                  if (!result.ok) {
+                    setTvOverride(previous);
+                    toast.error(
+                      result.message ?? "Não foi possível atualizar a TV.",
+                    );
+                    return;
+                  }
+                  toast.success(
+                    result.message ?? "Preferência da TV atualizada.",
+                  );
+                } finally {
+                  setPendingAction(null);
+                  lock.release();
+                }
+              });
+            }}
+          />
+          {pendingAction === "tv" ? (
+            <span className="inline-flex items-center gap-2">
+              <Loader2Icon className="size-3.5 animate-spin" aria-hidden="true" />
+              Salvando...
+            </span>
+          ) : (
+            <span className="flex flex-col gap-0.5">
+              <span>Exibir próximas senhas na TV</span>
+              <span className="text-muted-foreground text-xs">
+                Salva automaticamente.
+              </span>
+            </span>
+          )}
+        </label>
+      ) : null}
     </div>
   );
 }

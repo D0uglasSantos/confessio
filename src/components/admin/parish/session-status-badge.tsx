@@ -1,7 +1,10 @@
+import { BanIcon, CheckCircle2Icon, FilePenIcon, RadioIcon } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { sessionStatusLabel } from "@/lib/admin/labels";
 import { isSessionLive } from "@/components/admin/parish/session-helpers";
 import type { ParishSessionStatus } from "@/components/admin/parish/session-helpers";
+import { cn } from "cn";
 
 export function SessionStatusBadge({
   status,
@@ -12,16 +15,42 @@ export function SessionStatusBadge({
 
   if (isSessionLive(status)) {
     return (
-      <Badge className="gap-1.5">
-        <span className="size-1.5 rounded-full bg-current" />
+      <Badge className="gap-1.5 bg-emerald-700 text-white">
+        <span className="relative flex size-1.5">
+          <span className="absolute inline-flex size-full animate-ping rounded-full bg-white/80" />
+          <span className="relative inline-flex size-1.5 rounded-full bg-white" />
+        </span>
+        <RadioIcon className="size-3" aria-hidden="true" />
         {label}
       </Badge>
     );
   }
 
   if (status === "CANCELLED") {
-    return <Badge variant="destructive">{label}</Badge>;
+    return (
+      <Badge variant="destructive" className="gap-1.5">
+        <BanIcon className="size-3" aria-hidden="true" />
+        {label}
+      </Badge>
+    );
   }
 
-  return <Badge variant="outline">{label}</Badge>;
+  if (status === "DRAFT") {
+    return (
+      <Badge
+        variant="outline"
+        className={cn("text-muted-foreground gap-1.5")}
+      >
+        <FilePenIcon className="size-3" aria-hidden="true" />
+        {label}
+      </Badge>
+    );
+  }
+
+  return (
+    <Badge variant="secondary" className="gap-1.5">
+      <CheckCircle2Icon className="size-3" aria-hidden="true" />
+      {label}
+    </Badge>
+  );
 }

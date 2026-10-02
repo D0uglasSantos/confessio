@@ -18,9 +18,29 @@ export const metadata = {
 
 export default async function AdminNewSessionPage() {
   const { church, supabase, user } = await requireAdminChurch();
-  const { data: isGlobalAdmin } = await supabase.rpc("is_global_admin", {
-    p_required_role: "viewer",
-  });
+  const [{ data: isGlobalAdmin }, { data: lastSession }] = await Promise.all([
+    supabase.rpc("is_global_admin", { p_required_role: "viewer" }),
+    supabase
+      .from("sessions")
+      .select("id")
+      .eq("church_id", church.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+
+  const { data: lastStationRows } = lastSession
+    ? await supabase
+        .from("stations")
+        .select("name, priest_name")
+        .eq("session_id", lastSession.id)
+        .order("name")
+    : { data: [] };
+
+  const lastStations = (lastStationRows ?? []).map((station) => ({
+    name: station.name,
+    priestName: station.priest_name ?? "",
+  }));
 
   return (
     <ParishShell
@@ -37,11 +57,12 @@ export default async function AdminNewSessionPage() {
         <CardHeader>
           <CardTitle>Cadastro</CardTitle>
           <CardDescription>
-            Defina o horário, o prefixo das senhas e os confessionários da mesa.
+            Defina o horário, o prefixo das senhas e os confessionários desta
+            sessão.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <CreateSessionForm />
+          <CreateSessionForm lastStations={lastStations} />
         </CardContent>
       </Card>
     </ParishShell>

@@ -1,9 +1,4 @@
-import {
-  CalendarPlusIcon,
-  LayoutDashboardIcon,
-  ListChecksIcon,
-  type LucideIcon,
-} from "lucide-react";
+import { LayoutDashboardIcon, ListChecksIcon, type LucideIcon } from "lucide-react";
 
 export type ParishNavItem = {
   href: string;
@@ -24,12 +19,6 @@ export const parishNavItems: ParishNavItem[] = [
     label: "Sessões",
     icon: ListChecksIcon,
   },
-  {
-    href: "/admin/sessoes/nova",
-    label: "Nova sessão",
-    icon: CalendarPlusIcon,
-    exact: true,
-  },
 ];
 
 export function isParishNavActive(
@@ -42,12 +31,7 @@ export function isParishNavActive(
   }
 
   if (href === "/admin/sessoes") {
-    return (
-      pathname === href ||
-      (pathname.startsWith("/admin/sessoes/") &&
-        pathname !== "/admin/sessoes/nova" &&
-        !pathname.includes("/imprimir"))
-    );
+    return pathname === href || pathname.startsWith("/admin/sessoes/");
   }
 
   return pathname === href || pathname.startsWith(`${href}/`);

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { passwordResetCallbackUrl } from "@/lib/app-url";
 import { requireGlobalAdmin } from "@/lib/admin/global";
 import { mapQueueError } from "@/lib/queue/errors";
 import {
@@ -181,5 +182,33 @@ export async function setChurchActiveAction(
   return {
     ok: true,
     message: isActive ? "Paróquia reativada." : "Paróquia desativada.",
+  };
+}
+
+export async function sendChurchAdminResetAction(
+  email: string,
+): Promise<ActionResult> {
+  const trimmed = email.trim();
+  if (!trimmed) {
+    return { ok: false, message: "Informe o e-mail." };
+  }
+
+  await requireGlobalAdmin("operator");
+  const { createClient } = await import("@/lib/supabase/server");
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resetPasswordForEmail(trimmed, {
+    redirectTo: passwordResetCallbackUrl(),
+  });
+
+  if (error) {
+    return {
+      ok: false,
+      message: "Não foi possível enviar o e-mail de redefinição.",
+    };
+  }
+
+  return {
+    ok: true,
+    message: "Se o e-mail existir, enviamos um link para redefinir a senha.",
   };
 }

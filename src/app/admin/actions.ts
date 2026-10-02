@@ -9,18 +9,23 @@ import {
 } from "@/lib/admin/church";
 import { passwordResetCallbackUrl } from "@/lib/app-url";
 import { mapQueueError } from "@/lib/queue/errors";
+import { generateSessionSlug } from "@/lib/admin/labels";
+import {
+  addHoursToBrazilLocalInput,
+  brazilLocalInputToIso,
+  nextFullHourBrazilLocalInput,
+} from "@/lib/admin/datetime";
+import { formatCounted } from "@/lib/admin/format";
 import {
   addStationSchema,
   createSessionSchema,
   issuePaperTicketsSchema,
+  rescheduleSessionSchema,
+  updateStationSchema,
 } from "@/lib/validations/session";
 
 function toIsoDateTime(localValue: string) {
-  const date = new Date(localValue);
-  if (Number.isNaN(date.getTime())) {
-    throw new Error("Data inválida");
-  }
-  return date.toISOString();
+  return brazilLocalInputToIso(localValue);
 }
 
 function revalidateParishAdmin(sessionId?: string) {
@@ -102,10 +107,10 @@ export async function updateAdminPassword(
   const password = String(formData.get("password") ?? "");
   const confirm = String(formData.get("confirm") ?? "");
 
-  if (password.length < 8) {
+  if (password.length < 10) {
     return {
       ok: false,
-      message: "A senha precisa ter pelo menos 8 caracteres.",
+      message: "A senha precisa ter pelo menos 10 caracteres.",
     };
   }
 
@@ -246,6 +251,273 @@ export async function createSessionAction(
   return { ok: true, sessionId: session.id };
 }
 
+export async function duplicateSessionAction(
+  sessionId: string,
+): Promise<CreateSessionResult> {
+  const { supabase, church } = await requireAdminChurch();
+
+  if (!church.is_active) {
+    return { ok: false, message: CHURCH_INACTIVE_MESSAGE };
+  }
+
+  const { data: session } = await supabase
+    .from("sessions")
+    .select("id, name, ticket_prefix, church_id")
+    .eq("id", sessionId)
+    .maybeSingle();
+
+  if (!session || session.church_id !== church.id) {
+    return { ok: false, message: "Sessão não encontrada." };
+  }
+
+  const { data: stations } = await supabase
+    .from("stations")
+    .select("name, priest_name")
+    .eq("session_id", sessionId)
+    .order("name");
+
+  if (!stations?.length) {
+    return {
+      ok: false,
+      message: "A sessão original não tem confessionários para copiar.",
+    };
+  }
+
+  const startsAt = brazilLocalInputToIso(nextFullHourBrazilLocalInput());
+  const endsAt = brazilLocalInputToIso(
+    addHoursToBrazilLocalInput(nextFullHourBrazilLocalInput(), 2),
+  );
+
+  const { data: created, error } = await supabase
+    .from("sessions")
+    .insert({
+      church_id: church.id,
+      name: `${session.name} (cópia)`,
+      slug: generateSessionSlug(),
+      ticket_prefix: session.ticket_prefix,
+      starts_at: startsAt,
+      ends_at: endsAt,
+      status: "DRAFT",
+    })
+    .select("id")
+    .single();
+
+  if (error || !created) {
+    return {
+      ok: false,
+      message:
+        error?.code === "23505"
+          ? "Não foi possível gerar um slug livre. Tente de novo."
+          : mapQueueError(error?.message, "Não foi possível duplicar a sessão."),
+    };
+  }
+
+  const { error: stationsError } = await supabase.from("stations").insert(
+    stations.map((station) => ({
+      session_id: created.id,
+      name: station.name,
+      priest_name: station.priest_name,
+      status: "OFFLINE" as const,
+    })),
+  );
+
+  if (stationsError) {
+    await supabase.from("sessions").delete().eq("id", created.id);
+    return {
+      ok: false,
+      message: mapQueueError(
+        stationsError.message,
+        "Erro ao copiar confessionários.",
+      ),
+    };
+  }
+
+  revalidateParishAdmin(created.id);
+  return { ok: true, sessionId: created.id };
+}
+
+export async function rescheduleSessionAction(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  const parsed = rescheduleSessionSchema.safeParse({
+    sessionId: formData.get("sessionId"),
+    startsAt: formData.get("startsAt"),
+    endsAt: formData.get("endsAt"),
+  });
+
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: parsed.error.issues[0]?.message ?? "Dados inválidos.",
+    };
+  }
+
+  const { supabase, church } = await requireAdminChurch();
+  const { sessionId } = parsed.data;
+
+  const { data: session } = await supabase
+    .from("sessions")
+    .select("id, status, church_id")
+    .eq("id", sessionId)
+    .maybeSingle();
+
+  if (!session || session.church_id !== church.id) {
+    return { ok: false, message: "Sessão não encontrada." };
+  }
+
+  if (session.status !== "DRAFT") {
+    return {
+      ok: false,
+      message: "Só é possível reagendar sessões em rascunho.",
+    };
+  }
+
+  let startsAt: string;
+  let endsAt: string;
+  try {
+    startsAt = brazilLocalInputToIso(parsed.data.startsAt);
+    endsAt = brazilLocalInputToIso(parsed.data.endsAt);
+  } catch {
+    return { ok: false, message: "Datas inválidas." };
+  }
+
+  const { error } = await supabase
+    .from("sessions")
+    .update({ starts_at: startsAt, ends_at: endsAt })
+    .eq("id", sessionId);
+
+  if (error) {
+    return {
+      ok: false,
+      message: mapQueueError(error.message, "Não foi possível reagendar."),
+    };
+  }
+
+  revalidateParishAdmin(sessionId);
+  return { ok: true, message: "Horário atualizado." };
+}
+
+export async function updateStationAction(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  const parsed = updateStationSchema.safeParse({
+    stationId: formData.get("stationId"),
+    sessionId: formData.get("sessionId"),
+    name: formData.get("name"),
+    priestName: formData.get("priestName") || undefined,
+  });
+
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: parsed.error.issues[0]?.message ?? "Dados inválidos.",
+    };
+  }
+
+  const { supabase, church } = await requireAdminChurch();
+  const { stationId, sessionId, name, priestName } = parsed.data;
+
+  const { data: session } = await supabase
+    .from("sessions")
+    .select("id, church_id")
+    .eq("id", sessionId)
+    .maybeSingle();
+
+  if (!session || session.church_id !== church.id) {
+    return { ok: false, message: "Sessão não encontrada." };
+  }
+
+  const { error } = await supabase
+    .from("stations")
+    .update({
+      name,
+      priest_name: priestName || null,
+    })
+    .eq("id", stationId)
+    .eq("session_id", sessionId);
+
+  if (error) {
+    return {
+      ok: false,
+      message: mapQueueError(
+        error.message,
+        "Não foi possível atualizar o confessionário.",
+      ),
+    };
+  }
+
+  revalidateParishAdmin(sessionId);
+  return { ok: true, message: "Confessionário atualizado." };
+}
+
+export async function removeStationAction(
+  sessionId: string,
+  stationId: string,
+): Promise<ActionResult> {
+  const { supabase, church } = await requireAdminChurch();
+
+  const { data: session } = await supabase
+    .from("sessions")
+    .select("id, church_id")
+    .eq("id", sessionId)
+    .maybeSingle();
+
+  if (!session || session.church_id !== church.id) {
+    return { ok: false, message: "Sessão não encontrada." };
+  }
+
+  const { data: station } = await supabase
+    .from("stations")
+    .select("id, status")
+    .eq("id", stationId)
+    .eq("session_id", sessionId)
+    .maybeSingle();
+
+  if (!station) {
+    return { ok: false, message: "Confessionário não encontrado." };
+  }
+
+  if (station.status === "CALLING" || station.status === "BUSY") {
+    return {
+      ok: false,
+      message: "Não é possível remover um confessionário com atendimento em andamento.",
+    };
+  }
+
+  const { count } = await supabase
+    .from("stations")
+    .select("id", { count: "exact", head: true })
+    .eq("session_id", sessionId);
+
+  if ((count ?? 0) <= 1) {
+    return {
+      ok: false,
+      message: "A sessão precisa de pelo menos um confessionário.",
+    };
+  }
+
+  const { error } = await supabase
+    .from("stations")
+    .delete()
+    .eq("id", stationId)
+    .eq("session_id", sessionId);
+
+  if (error) {
+    return {
+      ok: false,
+      message: mapQueueError(
+        error.message,
+        "Não foi possível remover o confessionário.",
+      ),
+    };
+  }
+
+  revalidateParishAdmin(sessionId);
+  return { ok: true, message: "Confessionário removido." };
+}
+
 export async function openSessionAction(
   sessionId: string,
 ): Promise<ActionResult> {
@@ -370,7 +642,7 @@ export async function finishSessionAction(
   if ((count ?? 0) > 0 && !force) {
     return {
       ok: false,
-      message: `Ainda há ${count} ticket(s) ativos. Confirme para forçar o encerramento.`,
+      message: `Ainda há ${formatCounted(count ?? 0, { one: "senha ativa", other: "senhas ativas" })}. Confirme para forçar o encerramento.`,
     };
   }
 

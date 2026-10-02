@@ -1,5 +1,6 @@
 import { AuditLogList } from "@/components/admin/global/audit-log-list";
 import { ConsolePageHeader } from "@/components/admin/console-page-header";
+import { parseAuditLog } from "@/lib/admin/global-metrics";
 import { requireGlobalAdmin } from "@/lib/admin/global";
 
 export const metadata = {
@@ -8,11 +9,9 @@ export const metadata = {
 
 export default async function AdminGlobalActivityPage() {
   const { supabase } = await requireGlobalAdmin("viewer");
-  const { data: auditLog } = await supabase
-    .from("platform_audit_log")
-    .select("id, action, target_type, target_id, metadata, created_at")
-    .order("created_at", { ascending: false })
-    .limit(50);
+  const { data: auditRaw, error } = await supabase.rpc("global_list_audit_log", {
+    p_limit: 50,
+  });
 
   return (
     <>
@@ -20,7 +19,7 @@ export default async function AdminGlobalActivityPage() {
         title="Atividade"
         description="Registro das ações administrativas da plataforma. Sem dados de fiéis."
       />
-      <AuditLogList entries={auditLog ?? []} />
+      <AuditLogList entries={parseAuditLog(auditRaw)} loadError={Boolean(error)} />
     </>
   );
 }

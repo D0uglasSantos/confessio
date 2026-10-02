@@ -88,6 +88,9 @@ export function PrintTicketBatchForm({
         size="lg"
         loading={pending}
         disabled={disabled}
+        title={
+          disabled ? "Disponível depois de abrir a fila" : undefined
+        }
         onClick={issue}
       >
         {pending ? "Gerando senhas..." : `Imprimir ${count} senhas`}
@@ -95,7 +98,7 @@ export function PrintTicketBatchForm({
 
       <p className="text-sm text-muted-foreground">
         {disabled
-          ? "Abra a fila para imprimir o lote de papéis."
+          ? "Disponível depois de abrir a fila. Use o papel para quem chega sem celular."
           : "Cada papel leva o título da sessão, a senha e um QR próprio. Entregue na ordem impressa."}
       </p>
 

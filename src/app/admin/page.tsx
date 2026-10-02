@@ -18,7 +18,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { requireAdminChurch } from "@/lib/admin/church";
-import { formatAdminDateTime } from "@/lib/admin/format";
+import { formatAdminDateTime, formatAdminTime, formatCounted } from "@/lib/admin/format";
+import { isSameBrazilDay } from "@/lib/admin/datetime";
 
 export const dynamic = "force-dynamic";
 
@@ -73,10 +74,10 @@ export default async function AdminPage() {
           </CardHeader>
           <CardContent>
             {stats.live.length === 0 ? (
-              <p className="text-muted-foreground text-sm">
-                Nenhuma fila em andamento. Abra um rascunho ou crie uma nova
-                sessão.
-              </p>
+              <EmptyOperationNextStep
+                drafts={stats.drafts}
+                canCreate={church.is_active}
+              />
             ) : (
               <ul className="space-y-2">
                 {stats.live.map((session) => (
@@ -144,5 +145,53 @@ export default async function AdminPage() {
         </Card>
       </section>
     </ParishShell>
+  );
+}
+
+function EmptyOperationNextStep({
+  drafts,
+  canCreate,
+}: {
+  drafts: ParishSessionSummary[];
+  canCreate: boolean;
+}) {
+  const todaysDrafts = drafts.filter(
+    (session) => session.starts_at && isSameBrazilDay(session.starts_at),
+  );
+  const featured = todaysDrafts[0] ?? drafts[0];
+
+  if (featured?.starts_at) {
+    return (
+      <div className="space-y-3">
+        <p className="text-sm">
+          Você tem{" "}
+          {formatCounted(todaysDrafts.length || 1, {
+            one: "rascunho",
+            other: "rascunhos",
+          })}
+          {todaysDrafts.length > 0 ? " para hoje" : ""} às{" "}
+          {formatAdminTime(featured.starts_at)}.
+        </p>
+        <Link
+          href={`/admin/sessoes/${featured.id}`}
+          className={buttonVariants()}
+        >
+          Abrir sessão
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <p className="text-muted-foreground text-sm">
+        Nenhuma fila em andamento.
+      </p>
+      {canCreate ? (
+        <Link href="/admin/sessoes/nova" className={buttonVariants()}>
+          Criar nova sessão
+        </Link>
+      ) : null}
+    </div>
   );
 }

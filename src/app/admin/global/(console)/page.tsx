@@ -6,6 +6,7 @@ import { GlobalMetricsGrid } from "@/components/admin/global/global-metrics-grid
 import { PlatformAttention } from "@/components/admin/global/platform-attention";
 import { buttonVariants } from "@/components/ui/button";
 import {
+  parseAuditLog,
   parseGlobalChurches,
   parseGlobalDashboardMetrics,
 } from "@/lib/admin/global-metrics";
@@ -18,16 +19,15 @@ export const metadata = {
 export default async function AdminGlobalOverviewPage() {
   const { supabase } = await requireGlobalAdmin("viewer");
 
-  const [{ data: churchesRaw }, { data: metricsRaw }, { data: auditLog }] =
-    await Promise.all([
-      supabase.rpc("global_list_churches"),
-      supabase.rpc("global_get_dashboard_metrics", {}),
-      supabase
-        .from("platform_audit_log")
-        .select("id, action, target_type, target_id, metadata, created_at")
-        .order("created_at", { ascending: false })
-        .limit(8),
-    ]);
+  const [
+    { data: churchesRaw },
+    { data: metricsRaw },
+    { data: auditRaw, error: auditError },
+  ] = await Promise.all([
+    supabase.rpc("global_list_churches"),
+    supabase.rpc("global_get_dashboard_metrics", {}),
+    supabase.rpc("global_list_audit_log", { p_limit: 8 }),
+  ]);
 
   const churches = parseGlobalChurches(churchesRaw);
   const metrics = parseGlobalDashboardMetrics(metricsRaw);
@@ -40,7 +40,7 @@ export default async function AdminGlobalOverviewPage() {
         actions={
           <Link
             href="/admin/global/paroquias"
-            className={buttonVariants({ variant: "outline" })}
+            className={buttonVariants()}
           >
             Gerenciar paróquias
           </Link>
@@ -56,7 +56,11 @@ export default async function AdminGlobalOverviewPage() {
           <PlatformAttention churches={churches} />
         </div>
         <div className="lg:col-span-2">
-          <AuditLogList entries={auditLog ?? []} showViewAll />
+          <AuditLogList
+            entries={parseAuditLog(auditRaw)}
+            loadError={Boolean(auditError)}
+            showViewAll
+          />
         </div>
       </section>
     </>

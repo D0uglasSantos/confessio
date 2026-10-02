@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 import {
   createSessionAction,
@@ -9,13 +10,18 @@ import {
 } from "@/app/admin/actions";
 import { startNavigationProgress } from "@/components/navigation-progress";
 import { generateSessionSlug } from "@/lib/admin/labels";
+import {
+  addHoursToBrazilLocalInput,
+  nextFullHourBrazilLocalInput,
+} from "@/lib/admin/datetime";
+import { formatPublicCode } from "@/lib/queue/ticket";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 const initialState: CreateSessionResult | null = null;
 
-type StationDraft = {
+export type StationDraft = {
   name: string;
   priestName: string;
 };
@@ -28,25 +34,93 @@ function defaultStations(): StationDraft[] {
   ];
 }
 
-export function CreateSessionForm() {
+function prefixPreview(prefix: string) {
+  const value = prefix.trim().toUpperCase() || "C";
+  return [1, 2, 3].map((number) => formatPublicCode(value, number)).join(", ");
+}
+
+export function CreateSessionForm({
+  lastStations = [],
+}: {
+  lastStations?: StationDraft[];
+}) {
   const router = useRouter();
+  const startsDefault = nextFullHourBrazilLocalInput();
   const [state, formAction, pending] = useActionState(
     createSessionAction,
     initialState,
   );
   const [slug, setSlug] = useState(generateSessionSlug());
+  const [prefix, setPrefix] = useState("C");
+  const [startsAt, setStartsAt] = useState(startsDefault);
+  const [endsAt, setEndsAt] = useState(addHoursToBrazilLocalInput(startsDefault, 2));
   const [stations, setStations] = useState<StationDraft[]>(defaultStations);
+  const [prefixError, setPrefixError] = useState<string | null>(null);
+  const [rangeError, setRangeError] = useState<string | null>(null);
 
   const stationsJson = useMemo(() => JSON.stringify(stations), [stations]);
 
   useEffect(() => {
     if (!state?.ok) return;
+    toast.success("Sessão criada.");
     startNavigationProgress();
     router.push(`/admin/sessoes/${state.sessionId}`);
   }, [router, state]);
 
+  function validatePrefix(value: string) {
+    if (!value.trim()) {
+      setPrefixError("Informe o prefixo da senha");
+      return false;
+    }
+    if (value.length > 4) {
+      setPrefixError("Use no máximo 4 caracteres");
+      return false;
+    }
+    if (!/^[A-Za-z0-9]+$/.test(value)) {
+      setPrefixError("Use apenas letras e números");
+      return false;
+    }
+    setPrefixError(null);
+    return true;
+  }
+
+  function validateRange(nextStart: string, nextEnd: string) {
+    if (nextEnd && nextStart && nextEnd <= nextStart) {
+      setRangeError("O término precisa ser posterior ao início.");
+      return false;
+    }
+    setRangeError(null);
+    return true;
+  }
+
+  function removeStation(index: number) {
+    const station = stations[index];
+    if (
+      station?.priestName.trim() &&
+      !window.confirm(
+        `Remover ${station.name}? O nome do sacerdote já está preenchido.`,
+      )
+    ) {
+      return;
+    }
+    setStations((current) => current.filter((_, itemIndex) => itemIndex !== index));
+  }
+
   return (
-    <form action={formAction} className="space-y-5">
+    <form
+      action={formAction}
+      className="space-y-5"
+      onSubmit={(event) => {
+        const prefixOk = validatePrefix(prefix);
+        const rangeOk = validateRange(startsAt, endsAt);
+        if (!prefixOk || !rangeOk || stations.length === 0) {
+          event.preventDefault();
+          if (stations.length === 0) {
+            toast.error("Cadastre pelo menos um confessionário.");
+          }
+        }
+      }}
+    >
       <input type="hidden" name="stationsJson" value={stationsJson} />
 
       {state && !state.ok ? (
@@ -67,6 +141,72 @@ export function CreateSessionForm() {
         </div>
 
         <div className="space-y-2">
+          <Label htmlFor="ticketPrefix">Prefixo da senha</Label>
+          <Input
+            id="ticketPrefix"
+            name="ticketPrefix"
+            value={prefix}
+            maxLength={4}
+            aria-invalid={prefixError ? true : undefined}
+            onChange={(event) => {
+              const value = event.target.value.toUpperCase();
+              setPrefix(value);
+              validatePrefix(value);
+            }}
+            required
+          />
+          <p className="text-muted-foreground text-xs">
+            As senhas serão {prefixPreview(prefix)}…
+          </p>
+          {prefixError ? (
+            <p className="text-destructive text-xs">{prefixError}</p>
+          ) : null}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="startsAt">Início</Label>
+          <Input
+            id="startsAt"
+            name="startsAt"
+            type="datetime-local"
+            value={startsAt}
+            onChange={(event) => {
+              const value = event.target.value;
+              setStartsAt(value);
+              const nextEnd = addHoursToBrazilLocalInput(value || startsAt, 2);
+              setEndsAt(nextEnd);
+              validateRange(value, nextEnd);
+            }}
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="endsAt">Término previsto</Label>
+          <Input
+            id="endsAt"
+            name="endsAt"
+            type="datetime-local"
+            value={endsAt}
+            aria-invalid={rangeError ? true : undefined}
+            onChange={(event) => {
+              const value = event.target.value;
+              setEndsAt(value);
+              validateRange(startsAt, value);
+            }}
+            required
+          />
+          {rangeError ? (
+            <p className="text-destructive text-xs">{rangeError}</p>
+          ) : null}
+        </div>
+      </div>
+
+      <details className="rounded-xl border border-border/80 bg-card p-4">
+        <summary className="cursor-pointer text-sm font-medium">
+          Opções avançadas
+        </summary>
+        <div className="mt-3 space-y-2">
           <Label htmlFor="slug">Slug / QR</Label>
           <div className="flex gap-2">
             <Input
@@ -84,50 +224,51 @@ export function CreateSessionForm() {
               Novo
             </Button>
           </div>
+          <p className="text-muted-foreground text-xs">
+            Gerado automaticamente. Só altere se precisar de um código
+            específico no cartaz.
+          </p>
         </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="ticketPrefix">Prefixo da senha</Label>
-          <Input
-            id="ticketPrefix"
-            name="ticketPrefix"
-            defaultValue="C"
-            maxLength={4}
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="startsAt">Início</Label>
-          <Input id="startsAt" name="startsAt" type="datetime-local" required />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="endsAt">Término previsto</Label>
-          <Input id="endsAt" name="endsAt" type="datetime-local" required />
-        </div>
-      </div>
+      </details>
 
       <div className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <Label>Confessionários</Label>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() =>
-              setStations((current) => [
-                ...current,
-                {
-                  name: `Confessionário ${String(current.length + 1).padStart(2, "0")}`,
-                  priestName: "",
-                },
-              ])
-            }
-          >
-            Adicionar
-          </Button>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Label>Confessionários desta sessão</Label>
+          <div className="flex flex-wrap gap-2">
+            {lastStations.length > 0 ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setStations(lastStations)}
+              >
+                Copiar da última sessão
+              </Button>
+            ) : null}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                setStations((current) => [
+                  ...current,
+                  {
+                    name: `Confessionário ${String(current.length + 1).padStart(2, "0")}`,
+                    priestName: "",
+                  },
+                ])
+              }
+            >
+              Adicionar
+            </Button>
+          </div>
         </div>
+
+        {stations.length === 0 ? (
+          <p className="text-destructive text-sm">
+            Cadastre pelo menos um confessionário para salvar.
+          </p>
+        ) : null}
 
         <div className="space-y-3">
           {stations.map((station, index) => (
@@ -166,12 +307,7 @@ export function CreateSessionForm() {
               <Button
                 type="button"
                 variant="ghost"
-                disabled={stations.length <= 1}
-                onClick={() =>
-                  setStations((current) =>
-                    current.filter((_, itemIndex) => itemIndex !== index),
-                  )
-                }
+                onClick={() => removeStation(index)}
               >
                 Remover
               </Button>

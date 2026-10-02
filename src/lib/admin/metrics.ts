@@ -91,8 +91,23 @@ export function parseAdminSessionState(
   };
 }
 
-export function formatMinutes(value: number | null) {
+export function formatDuration(value: number | null) {
   if (value == null) return "—";
-  const rounded = Math.round(value * 10) / 10;
-  return `${rounded} min`;
+
+  const totalSeconds = Math.max(0, Math.round(value * 60));
+  if (totalSeconds < 60) {
+    return `${totalSeconds} s`;
+  }
+
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  if (seconds === 0) {
+    return `${minutes} min`;
+  }
+
+  return `${minutes} min ${seconds} s`;
+}
+
+export function formatMinutes(value: number | null) {
+  return formatDuration(value);
 }

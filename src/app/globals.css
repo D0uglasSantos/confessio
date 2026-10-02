@@ -64,7 +64,7 @@
   --secondary: #ebe3d6;
   --secondary-foreground: #3e2a49;
   --muted: #efe7da;
-  --muted-foreground: #5c5760;
+  --muted-foreground: #3f3a42;
   --accent: #e4ebe4;
   --accent-foreground: #3e4a3f;
   --destructive: #9d3f45;
@@ -152,6 +152,15 @@
     @apply font-sans;
     -webkit-tap-highlight-color: transparent;
     text-size-adjust: 100%;
+  }
+
+  input[data-slot="input"]:-webkit-autofill,
+  input[data-slot="input"]:-webkit-autofill:hover,
+  input[data-slot="input"]:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--foreground);
+    caret-color: var(--foreground);
+    box-shadow: 0 0 0 1000px var(--background) inset;
+    transition: background-color 9999s ease-out;
   }
 }
 

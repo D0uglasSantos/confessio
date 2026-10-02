@@ -1,10 +1,15 @@
+import { AMERICA_SAO_PAULO } from "@/lib/admin/datetime";
+
 function formatDateTime(value: string, options: Intl.DateTimeFormatOptions) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
     return value;
   }
 
-  return new Intl.DateTimeFormat("pt-BR", options).format(date);
+  return new Intl.DateTimeFormat("pt-BR", {
+    timeZone: AMERICA_SAO_PAULO,
+    ...options,
+  }).format(date);
 }
 
 export function formatAdminDateTime(value: string) {
@@ -43,4 +48,18 @@ export function formatAdminTime(value: string) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+export function pluralize(
+  count: number,
+  forms: { one: string; other: string },
+) {
+  return count === 1 ? forms.one : forms.other;
+}
+
+export function formatCounted(
+  count: number,
+  forms: { one: string; other: string },
+) {
+  return `${formatCount(count)} ${pluralize(count, forms)}`;
 }

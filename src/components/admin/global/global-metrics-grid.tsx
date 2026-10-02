@@ -7,8 +7,8 @@ import {
   UserRoundXIcon,
 } from "lucide-react";
 
-import { formatCount } from "@/lib/admin/format";
-import { formatMinutes } from "@/lib/admin/metrics";
+import { formatCount, formatCounted, pluralize } from "@/lib/admin/format";
+import { formatDuration } from "@/lib/admin/metrics";
 import type {
   GlobalChurchSummary,
   GlobalDashboardMetrics,
@@ -33,23 +33,20 @@ export function GlobalMetricsGrid({
       value: formatCount(metrics.churches_total),
       hint:
         inactiveChurches > 0
-          ? `${formatCount(activeChurches)} ativas · ${formatCount(inactiveChurches)} desativadas`
-          : `${formatCount(activeChurches)} ativas`,
+          ? `${formatCounted(activeChurches, { one: "ativa", other: "ativas" })} · ${formatCounted(inactiveChurches, { one: "desativada", other: "desativadas" })}`
+          : formatCounted(activeChurches, { one: "ativa", other: "ativas" }),
       icon: ChurchIcon,
       live: false,
     },
     {
       label: "Em operação agora",
       value: formatCount(metrics.churches_with_active_session),
-      hint:
-        metrics.churches_with_active_session === 1
-          ? "1 paróquia com fila aberta"
-          : `${formatCount(metrics.churches_with_active_session)} paróquias com fila aberta`,
+      hint: `${formatCount(metrics.churches_with_active_session)} ${pluralize(metrics.churches_with_active_session, { one: "paróquia com fila aberta", other: "paróquias com fila aberta" })}`,
       icon: RadioIcon,
       live: metrics.churches_with_active_session > 0,
     },
     {
-      label: "Sessões abertas",
+      label: "Filas abertas no período",
       value: formatCount(metrics.sessions_opened_in_period),
       hint: "Últimos 30 dias",
       icon: ClockIcon,
@@ -63,7 +60,7 @@ export function GlobalMetricsGrid({
       live: false,
     },
     {
-      label: "Taxa de no-show",
+      label: "Taxa de ausência",
       value: `${noShow}%`,
       hint: "Últimos 30 dias",
       icon: UserRoundXIcon,
@@ -72,7 +69,7 @@ export function GlobalMetricsGrid({
     },
     {
       label: "Tempo médio",
-      value: formatMinutes(metrics.average_service_minutes),
+      value: formatDuration(metrics.average_service_minutes),
       hint: "Atendimento, últimos 30 dias",
       icon: TimerIcon,
       live: false,
