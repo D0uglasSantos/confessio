@@ -10,6 +10,7 @@ const QUEUE_ERROR_MESSAGES: Array<[needle: string, message: string]> = [
   ["TICKET_NOT_FOUND", "Senha não encontrada."],
   ["SESSION_NOT_OPEN", "A entrada na fila não está aberta no momento."],
   ["SESSION_NOT_FOUND", "Sessão não encontrada."],
+  ["INVALID_PHONE", "Informe um telefone válido com DDD."],
   ["INVALID_PAPER_TICKET_COUNT", "Escolha um lote de 50 a 500, de 50 em 50."],
   ["PRINT_BATCH_NOT_FOUND", "Lote de impressão não encontrado."],
   ["SESSION_NOT_DRAFT", "A sessão já foi aberta."],

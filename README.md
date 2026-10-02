@@ -8,7 +8,7 @@ Este repositório está no **MVP 01** (profissional + multi-paróquia + admin gl
 
 ## Princípios
 
-- O fiel não cria conta e não informa nome, telefone ou e-mail.
+- O fiel não cria conta e não informa nome ou e-mail. Telefone é opcional, só para aviso de chamada no WhatsApp.
 - O sistema gerencia fila, senhas e confessionários. Nunca armazena conteúdo da confissão.
 - Regras críticas de concorrência ficam no PostgreSQL, não no cliente.
 

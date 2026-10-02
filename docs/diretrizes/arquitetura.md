@@ -10,11 +10,11 @@ A próxima senha **não** é escolhida no frontend. Usar RPCs atômicas. `call_n
 
 `create_ticket`, `get_ticket_by_token`, `cancel_ticket` (só `WAITING`), `call_next_ticket`, `recall_ticket`, `start_service`, `finish_service`, `mark_no_show`, `pause_station`, `resume_station`, `get_public_session_state`, `get_station_state`, `admin_get_session_state`.
 
-Estado público (TV/fiel) **não** inclui tokens.
+Estado público (TV/fiel) **não** inclui tokens nem telefone.
 
 ## Realtime
 
-Realtime invalida e o cliente **refetcha a RPC**. Não enviar `anonymous_token` nem `access_token` no payload.
+Realtime invalida e o cliente **refetcha a RPC**. Não enviar `anonymous_token`, `access_token` nem telefone no payload.
 
 ## Invariantes
 
