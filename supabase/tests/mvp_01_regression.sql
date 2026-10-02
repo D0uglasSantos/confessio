@@ -139,6 +139,28 @@ BEGIN
   v_new_church := public.global_create_church('Paróquia Fase 5', 'paroquia-fase-5', NULL);
   PERFORM pg_temp.assert(v_new_church IS NOT NULL, 'global_create_church returned null');
 
+  v_list := public.global_list_audit_log(20);
+  PERFORM pg_temp.assert(
+    jsonb_typeof(v_list -> 'entries') = 'array',
+    'global_list_audit_log missing entries'
+  );
+  PERFORM pg_temp.assert(
+    EXISTS (
+      SELECT 1
+      FROM jsonb_array_elements(v_list -> 'entries') e
+      WHERE e ->> 'action' = 'church.create'
+        AND e ->> 'actor_email' = 'global@plataforma.local'
+        AND (e ->> 'target_id') = v_new_church::text
+    ),
+    'church.create was not audited with actor email'
+  );
+
+  v_list := public.global_list_church_admins(v_church_id);
+  PERFORM pg_temp.assert(
+    jsonb_typeof(v_list -> 'admins') = 'array',
+    'global_list_church_admins missing admins'
+  );
+
   PERFORM pg_temp.assert(
     public.global_update_church(v_new_church, 'Paróquia Fase 5 Atualizada', 'paroquia-fase-5', NULL),
     'global_update_church failed'
@@ -249,17 +271,43 @@ BEGIN
   PERFORM pg_temp.assert(v_token_a IS NOT NULL, 'missing station A token');
   PERFORM pg_temp.assert(v_token_b IS NOT NULL, 'missing station B token');
 
-  v_ticket_1 := public.create_ticket(v_session_id, NULL);
+  v_ticket_1 := public.create_ticket(v_session_id, NULL, '(11) 99999-9999');
   v_ticket_2 := public.create_ticket(v_session_id, NULL);
   v_ticket_3 := public.create_ticket(v_session_id, NULL);
 
   PERFORM pg_temp.assert(v_ticket_1.public_code IS DISTINCT FROM v_ticket_2.public_code, 'duplicate public codes');
   PERFORM pg_temp.assert(v_ticket_1.anonymous_token IS NOT NULL, 'missing anonymous token');
-
-  -- Token existente devolve a mesma senha
   PERFORM pg_temp.assert(
-    (public.create_ticket(v_session_id, v_ticket_1.anonymous_token)).id = v_ticket_1.id,
+    (SELECT phone_e164 FROM public.ticket_contacts WHERE ticket_id = v_ticket_1.id) = '+5511999999999',
+    'optional phone was not stored in ticket_contacts'
+  );
+  PERFORM pg_temp.assert(
+    NOT EXISTS (SELECT 1 FROM public.ticket_contacts WHERE ticket_id = v_ticket_2.id),
+    'ticket without phone created a contact'
+  );
+
+  BEGIN
+    PERFORM public.create_ticket(v_session_id, NULL, 'abc');
+    RAISE EXCEPTION 'invalid phone must fail';
+  EXCEPTION
+    WHEN OTHERS THEN
+      v_err := SQLERRM;
+      IF v_err LIKE '%invalid phone must fail%' THEN
+        RAISE;
+      END IF;
+      IF v_err NOT LIKE '%INVALID_PHONE%' THEN
+        RAISE EXCEPTION 'expected INVALID_PHONE, got %', v_err;
+      END IF;
+  END;
+
+  -- Token existente devolve a mesma senha e pode atualizar o telefone
+  PERFORM pg_temp.assert(
+    (public.create_ticket(v_session_id, v_ticket_1.anonymous_token, '11988888888')).id = v_ticket_1.id,
     'create_ticket did not reuse existing waiting ticket'
+  );
+  PERFORM pg_temp.assert(
+    (SELECT phone_e164 FROM public.ticket_contacts WHERE ticket_id = v_ticket_1.id) = '+5511988888888',
+    'rejoin did not update phone'
   );
 
   v_called_1 := public.call_next_ticket(v_station_a, v_token_a);
@@ -268,6 +316,16 @@ BEGIN
   PERFORM pg_temp.assert(v_called_1.id IS DISTINCT FROM v_called_2.id, 'two stations claimed the same ticket');
   PERFORM pg_temp.assert(v_called_1.status = 'CALLED', 'station A ticket not CALLED');
   PERFORM pg_temp.assert(v_called_2.status = 'CALLED', 'station B ticket not CALLED');
+  PERFORM pg_temp.assert(v_called_1.id = v_ticket_1.id, 'station A did not receive the first ticket');
+  PERFORM pg_temp.assert(
+    (
+      SELECT phone_evolution = '5511988888888'
+         AND station_id = v_station_a
+         AND station_name IS NOT NULL
+      FROM private.get_ticket_whatsapp_target(v_called_1.id)
+    ),
+    'whatsapp target is not linked to the calling station'
+  );
 
   BEGIN
     PERFORM public.call_next_ticket(v_station_a, v_token_a);
@@ -289,6 +347,8 @@ BEGIN
   );
 
   v_public := public.get_public_session_state('7DHF92');
+  PERFORM pg_temp.assert(v_public::text NOT LIKE '%5511988888888%', 'public session leaked phone');
+  PERFORM pg_temp.assert(v_public::text NOT LIKE '%phone%', 'public session leaked phone key');
   PERFORM pg_temp.assert(v_public #>> '{session,slug}' = '7DHF92', 'public session slug mismatch');
   PERFORM pg_temp.assert(
     (v_public -> 'session' ? 'church_name'),
@@ -301,6 +361,25 @@ BEGIN
 
   v_station_state := public.get_station_state(v_station_b, v_token_b);
   PERFORM pg_temp.assert(v_station_state IS NOT NULL, 'get_station_state returned null');
+  PERFORM pg_temp.assert(v_station_state::text NOT LIKE '%phone%', 'station state leaked phone');
+
+  BEGIN
+    EXECUTE 'SET LOCAL ROLE anon';
+    PERFORM count(*) FROM public.ticket_contacts;
+    RAISE EXCEPTION 'anon must not read ticket_contacts';
+  EXCEPTION
+    WHEN insufficient_privilege THEN
+      NULL;
+    WHEN OTHERS THEN
+      v_err := SQLERRM;
+      IF v_err LIKE '%anon must not read ticket_contacts%' THEN
+        RAISE;
+      END IF;
+      IF v_err NOT LIKE '%permission denied%' THEN
+        RAISE EXCEPTION 'expected ticket_contacts deny, got %', v_err;
+      END IF;
+  END;
+  RESET ROLE;
 
   BEGIN
     PERFORM public.get_station_state(v_station_b, gen_random_uuid());

@@ -362,6 +362,35 @@ export type Database = {
           },
         ]
       }
+      ticket_contacts: {
+        Row: {
+          created_at: string
+          phone_e164: string
+          ticket_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          phone_e164: string
+          ticket_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          phone_e164?: string
+          ticket_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_contacts_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: true
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ticket_tokens: {
         Row: {
           anonymous_token: string
@@ -501,7 +530,11 @@ export type Database = {
         }
       }
       create_ticket: {
-        Args: { p_existing_token?: string; p_session_id: string }
+        Args: {
+          p_existing_token?: string
+          p_phone_e164?: string
+          p_session_id: string
+        }
         Returns: Database["public"]["CompositeTypes"]["fiel_ticket"]
         SetofOptions: {
           from: "*"

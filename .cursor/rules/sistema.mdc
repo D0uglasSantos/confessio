@@ -9,11 +9,11 @@ Fonte: `docs/diretrizes`. Spec: `docs/DATABASE.md`.
 
 ## Produto
 
-Confessio — fila, senhas e confessionários. Fiel sem conta e sem PII. Uma fila por sessão; o fiel não escolhe o padre. Auth só em `/admin`. Nunca armazenar conteúdo da confissão.
+Confessio — fila, senhas e confessionários. Fiel sem conta. Nome, CPF e e-mail não são coletados. Telefone é opcional, só em `ticket_contacts`, para aviso de chamada no WhatsApp. Uma fila por sessão; o fiel não escolhe o padre. Auth só em `/admin`. Nunca armazenar conteúdo da confissão.
 
 ## Privacidade
 
-- `public_code` é público. `anonymous_token` e `access_token` são privados, fora do Realtime.
+- `public_code` é público. `anonymous_token`, `access_token` e telefone são privados, fora do Realtime.
 - Não autorizar com `publicCode` do cliente.
 - Sem `select`/`update` direto em `tickets` no frontend. Sempre RPC.
 - Service role só no server. Nunca `NEXT_PUBLIC_*` nem Client Component.

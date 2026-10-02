@@ -29,13 +29,14 @@ Ele nunca deve armazenar:
 
 - nome do penitente;
 - CPF;
-- telefone;
 - e-mail;
 - pecados;
 - motivo da confissão;
 - anotações do sacerdote;
 - conteúdo da conversa;
 - histórico espiritual individual.
+
+Telefone é **opcional**. Só existe para aviso de chamada no WhatsApp. Fica em `ticket_contacts`, nunca em `tickets`, Realtime, telão ou RPC pública. A mesa do padre continua ligada só por `tickets.station_id`.
 
 ---
 
@@ -167,7 +168,10 @@ Não enviar:
 ```text
 anonymous_token
 access_token
+phone_e164
 ```
+
+`ticket_contacts` fica fora da publication do Realtime.
 
 ---
 
@@ -195,6 +199,10 @@ stations          tickets
     │               │
     └───────────────┘
           station_id
+                    │
+                    │ 1:0..1
+                    ▼
+              ticket_contacts
 ```
 
 ---
@@ -632,6 +640,27 @@ create table public.tickets (
 
 
 -- =========================================================
+-- TICKET CONTACTS
+-- Contato privado para WhatsApp. Não entra no Realtime.
+-- =========================================================
+
+create table public.ticket_contacts (
+  ticket_id uuid primary key
+    references public.tickets(id)
+    on delete cascade,
+
+  -- E.164, ex.: +5511999999999
+  phone_e164 text not null,
+
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+
+  constraint ticket_contacts_phone_e164_format
+    check (phone_e164 ~ '^\+[1-9][0-9]{7,14}$')
+);
+
+
+-- =========================================================
 -- INDEXES
 -- =========================================================
 
@@ -894,7 +923,8 @@ using (
 -- =========================================================
 
 create or replace function public.create_ticket(
-  p_session_id uuid
+  p_session_id uuid,
+  p_phone_e164 text default null
 )
 returns table (
   ticket_id uuid,
@@ -2433,8 +2463,11 @@ Depois disso `create_ticket()` passa a aceitar entradas.
 ```ts
 const { data, error } = await supabase.rpc("create_ticket", {
   p_session_id: sessionId,
+  p_phone_e164: phoneE164, // opcional; null se o fiel não quiser WhatsApp
 });
 ```
+
+`p_phone_e164` é opcional. Se informado, o banco normaliza para E.164 e grava só em `ticket_contacts`. O retorno de `create_ticket` **não** inclui o telefone.
 
 Retorno:
 
@@ -3047,6 +3080,9 @@ RPCs (todas exigem usuário autenticado vinculado em `global_admins`):
 ```text
 is_global_admin(p_required_role text default null)
 global_list_churches()
+global_list_audit_log(p_limit integer default 50)
+global_list_church_admins(p_church_id uuid)
+global_list_church_sessions(p_church_id uuid)
 global_create_church(p_name text, p_slug text, p_logo_url text default null)
 global_update_church(p_church_id uuid, p_name text, p_slug text, p_logo_url text default null)
 global_set_church_active(p_church_id uuid, p_is_active boolean)
@@ -3082,7 +3118,7 @@ church_admin.assign
 Regras:
 
 - Nunca registrar dado de fiel, conteúdo de confissão ou token privado nessa tabela.
-- Somente leitura por `global_admins` com papel `operator` ou `owner` (RLS).
+- Somente leitura por `global_admins` com papel `viewer`, `operator` ou `owner`, via RPC `global_list_audit_log` (e-mail do ator incluso; sem dado de fiel). A RLS da tabela continua exigindo `operator` no SELECT direto.
 - Toda nova ação administrativa crítica (ex.: remover admin, suspender paróquia) deve chamar `private.log_platform_action(...)` ao ser implementada.
 
 ## Hardening de Auth (produção)
@@ -3620,6 +3656,8 @@ Não construir lógica alternativa no frontend para substituir as RPCs.
 [ ] pause/resume funciona
 [ ] get_station_state não expõe access_token
 [ ] get_public_session_state não expõe anonymous_token
+[ ] ticket_contacts não tem SELECT anônimo
+[ ] create_ticket aceita telefone opcional sem devolvê-lo
 [ ] Admin consegue abrir/fechar sessão
 [ ] Broadcast funciona
 [ ] Reconnect executa refetch

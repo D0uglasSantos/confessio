@@ -6,7 +6,7 @@ O sistema organiza **fila, senhas e confessionários** em sessões de confissão
 
 ## Obrigatório
 
-- Fiel **sem conta**. Não pedir nome, telefone, e-mail ou qualquer identificador pessoal.
+- Fiel **sem conta**. Não pedir nome, CPF ou e-mail. Telefone é opcional, só para aviso de chamada no WhatsApp.
 - Uma **única fila por sessão**. O fiel não escolhe o sacerdote.
 - Múltiplos confessionários podem chamar ao mesmo tempo, sem senha duplicada.
 - Acompanhar chamada em tempo real (fiel, padre e TV).
