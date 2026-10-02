@@ -599,6 +599,15 @@ export type Database = {
         Args: { p_from?: string; p_to?: string }
         Returns: Json
       }
+      global_list_audit_log: { Args: { p_limit?: number }; Returns: Json }
+      global_list_church_admins: {
+        Args: { p_church_id: string }
+        Returns: Json
+      }
+      global_list_church_sessions: {
+        Args: { p_church_id: string }
+        Returns: Json
+      }
       global_list_churches: { Args: never; Returns: Json }
       global_set_church_active: {
         Args: { p_church_id: string; p_is_active: boolean }

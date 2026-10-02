@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -9,15 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { formatAdminDateTime } from "@/lib/admin/format";
-
-export type AuditLogEntry = {
-  id: string;
-  action: string;
-  target_type: string;
-  target_id: string | null;
-  metadata: unknown;
-  created_at: string;
-};
+import type { AuditLogEntry } from "@/lib/admin/global-metrics";
 
 const actionLabel: Record<string, string> = {
   "church.create": "Paróquia cadastrada",
@@ -39,6 +32,14 @@ function describeMetadata(action: string, metadata: unknown) {
     return data.name;
   }
 
+  if (action === "church.deactivate" && typeof data.name === "string") {
+    return data.name;
+  }
+
+  if (action === "church.activate" && typeof data.name === "string") {
+    return data.name;
+  }
+
   if (
     action === "church_admin.assign" &&
     typeof data.assigned_user_id === "string"
@@ -52,9 +53,11 @@ function describeMetadata(action: string, metadata: unknown) {
 export function AuditLogList({
   entries,
   showViewAll = false,
+  loadError = false,
 }: {
   entries: AuditLogEntry[];
   showViewAll?: boolean;
+  loadError?: boolean;
 }) {
   return (
     <Card className="h-full">
@@ -66,10 +69,24 @@ export function AuditLogList({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {entries.length === 0 ? (
-          <p className="text-muted-foreground text-sm">
-            Nenhuma ação registrada ainda.
+        {loadError ? (
+          <p className="text-sm text-destructive">
+            Não foi possível carregar o registro de atividade. Tente de novo em
+            instantes.
           </p>
+        ) : entries.length === 0 ? (
+          <div className="space-y-3">
+            <p className="text-muted-foreground text-sm">
+              Nenhuma ação registrada ainda. Cadastrar paróquia, editar,
+              vincular admin ou ativar/desativar aparece aqui.
+            </p>
+            <Link
+              href="/admin/global/paroquias"
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              Ir para paróquias
+            </Link>
+          </div>
         ) : (
           <ol>
             {entries.map((entry) => {
@@ -87,6 +104,7 @@ export function AuditLogList({
                   </p>
                   <p className="text-muted-foreground mt-0.5 text-xs">
                     {formatAdminDateTime(entry.created_at)}
+                    {entry.actor_email ? ` · ${entry.actor_email}` : null}
                   </p>
                 </li>
               );

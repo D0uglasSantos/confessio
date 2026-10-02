@@ -9,11 +9,17 @@ import {
   Volume2Icon,
 } from "lucide-react";
 
-import { formatCount } from "@/lib/admin/format";
-import { formatMinutes, type SessionMetrics } from "@/lib/admin/metrics";
+import { formatCount, formatCounted } from "@/lib/admin/format";
+import { formatDuration, type SessionMetrics } from "@/lib/admin/metrics";
 import { Card, CardContent } from "@/components/ui/card";
 
-export function SessionMetricsGrid({ metrics }: { metrics: SessionMetrics }) {
+export function SessionMetricsGrid({
+  metrics,
+  compact = false,
+}: {
+  metrics: SessionMetrics;
+  compact?: boolean;
+}) {
   const cards = [
     {
       label: "Na fila",
@@ -22,22 +28,25 @@ export function SessionMetricsGrid({ metrics }: { metrics: SessionMetrics }) {
       icon: UsersIcon,
     },
     {
-      label: "Chamados",
-      value: formatCount(metrics.called),
-      hint: "Senha no confessionário",
-      icon: Volume2Icon,
-    },
-    {
       label: "Em atendimento",
       value: formatCount(metrics.in_service),
-      hint: `${formatCount(metrics.active_stations)} confessionário(s) ativo(s)`,
+      hint: formatCounted(metrics.active_stations, {
+        one: "confessionário ativo",
+        other: "confessionários ativos",
+      }),
       icon: UserCheckIcon,
     },
     {
       label: "Concluídos",
       value: formatCount(metrics.completed),
-      hint: `${formatCount(metrics.no_show)} no-show · ${formatCount(metrics.cancelled)} cancelados`,
+      hint: `${formatCounted(metrics.no_show, { one: "ausência", other: "ausências" })} · ${formatCounted(metrics.cancelled, { one: "cancelada", other: "canceladas" })}`,
       icon: TicketIcon,
+    },
+    {
+      label: "Chamados",
+      value: formatCount(metrics.called),
+      hint: "Senha no confessionário",
+      icon: Volume2Icon,
     },
     {
       label: "Total de senhas",
@@ -47,13 +56,13 @@ export function SessionMetricsGrid({ metrics }: { metrics: SessionMetrics }) {
     },
     {
       label: "Espera média",
-      value: formatMinutes(metrics.average_wait_minutes),
+      value: formatDuration(metrics.average_wait_minutes),
       hint: "Até a primeira chamada",
       icon: HourglassIcon,
     },
     {
       label: "Atendimento médio",
-      value: formatMinutes(metrics.average_service_minutes),
+      value: formatDuration(metrics.average_service_minutes),
       hint: "Duração no confessionário",
       icon: TimerIcon,
     },
@@ -64,10 +73,11 @@ export function SessionMetricsGrid({ metrics }: { metrics: SessionMetrics }) {
       icon: UserRoundXIcon,
     },
   ];
+  const visible = compact ? cards.slice(0, 3) : cards;
 
   return (
     <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      {cards.map((card) => {
+      {visible.map((card) => {
         const Icon = card.icon;
 
         return (

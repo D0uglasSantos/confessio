@@ -1,10 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeftIcon, ChevronRightIcon, SearchIcon } from "lucide-react";
 
-import { AssignChurchAdminDialog } from "@/components/admin/global/assign-church-admin-dialog";
+import { ChurchRowActions } from "@/components/admin/global/church-row-actions";
 import {
   churchDirectoryFilters,
   churchInitials,
@@ -13,14 +14,12 @@ import {
   parseChurchDirectoryFilter,
   type ChurchDirectoryFilter,
 } from "@/components/admin/global/church-helpers";
-import { EditChurchDialog } from "@/components/admin/global/edit-church-dialog";
-import { SetChurchActiveButton } from "@/components/admin/global/set-church-active-button";
 import { startNavigationProgress } from "@/components/navigation-progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { formatAdminDate, formatCount } from "@/lib/admin/format";
+import { formatAdminDate, formatCount, formatCounted } from "@/lib/admin/format";
 import type { GlobalChurchSummary } from "@/lib/admin/global-metrics";
 
 const PAGE_SIZE = 12;
@@ -137,22 +136,37 @@ export function ChurchDirectory({
             <table className="w-full min-w-[52rem] text-left text-sm">
               <thead className="bg-muted/40 text-muted-foreground border-b text-xs tracking-wide uppercase">
                 <tr>
-                  <th className="px-4 py-3 font-medium">Paróquia</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Uso</th>
-                  <th className="px-4 py-3 font-medium">Admins</th>
-                  <th className="px-4 py-3 font-medium">Cadastro</th>
-                  <th className="px-4 py-3 font-medium">Ações</th>
+                  <th scope="col" className="px-4 py-3 font-medium">
+                    Paróquia
+                  </th>
+                  <th scope="col" className="px-4 py-3 font-medium">
+                    Status
+                  </th>
+                  <th scope="col" className="px-4 py-3 font-medium">
+                    Uso
+                  </th>
+                  <th scope="col" className="px-4 py-3 font-medium">
+                    Admins
+                  </th>
+                  <th scope="col" className="px-4 py-3 font-medium">
+                    Cadastro
+                  </th>
+                  <th scope="col" className="px-4 py-3 font-medium">
+                    Ações
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {pageItems.map((church) => (
                   <tr
                     key={church.id}
-                    className="hover:bg-muted/30 border-b last:border-0"
+                    className="hover:bg-muted/30 relative border-b last:border-0"
                   >
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
+                      <Link
+                        href={`/admin/global/paroquias/${church.id}`}
+                        className="after:absolute after:inset-y-0 after:left-0 after:right-40 flex items-center gap-3 focus-visible:ring-ring/50 rounded-sm focus-visible:ring-3 focus-visible:outline-none"
+                      >
                         {church.logo_url ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
@@ -171,7 +185,7 @@ export function ChurchDirectory({
                             /{church.slug}
                           </p>
                         </div>
-                      </div>
+                      </Link>
                     </td>
                     <td className="px-4 py-3">
                       {church.is_active ? (
@@ -189,16 +203,30 @@ export function ChurchDirectory({
                         <Badge variant="secondary">Sem uso</Badge>
                       )}
                       <p className="text-muted-foreground mt-1 text-xs">
-                        {church.sessions_total} sessão(ões)
+                        {formatCounted(church.sessions_total, {
+                          one: "sessão",
+                          other: "sessões",
+                        })}
                       </p>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="tabular-nums">
+                      <span
+                        className="tabular-nums"
+                        title={
+                          church.admin_emails.length > 0
+                            ? church.admin_emails.join(", ")
+                            : "Nenhum admin vinculado"
+                        }
+                      >
                         {formatCount(church.admins_count)}
                       </span>
                       {church.admins_count === 0 ? (
                         <p className="text-xs text-amber-800">Sem vínculo</p>
-                      ) : null}
+                      ) : (
+                        <p className="text-muted-foreground mt-1 max-w-[12rem] truncate text-xs">
+                          {church.admin_emails.join(", ")}
+                        </p>
+                      )}
                     </td>
                     <td className="text-muted-foreground px-4 py-3">
                       {church.created_at
@@ -206,24 +234,7 @@ export function ChurchDirectory({
                         : "—"}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-1.5">
-                        <EditChurchDialog
-                          churchId={church.id}
-                          name={church.name}
-                          slug={church.slug}
-                          logoUrl={church.logo_url}
-                        />
-                        <AssignChurchAdminDialog
-                          churchId={church.id}
-                          churchName={church.name}
-                        />
-                        <SetChurchActiveButton
-                          churchId={church.id}
-                          churchName={church.name}
-                          isActive={church.is_active}
-                          hasActiveSession={church.sessions_open_now > 0}
-                        />
-                      </div>
+                      <ChurchRowActions church={church} />
                     </td>
                   </tr>
                 ))}
@@ -236,7 +247,8 @@ export function ChurchDirectory({
       {filtered.length > PAGE_SIZE ? (
         <div className="text-muted-foreground flex items-center justify-between gap-3 text-sm">
           <p>
-            {formatCount(filtered.length)} paróquia(s) · página {currentPage} de{" "}
+            {formatCounted(filtered.length, { one: "paróquia", other: "paróquias" })}{" "}
+            · página {currentPage} de{" "}
             {pageCount}
           </p>
           <div className="flex gap-1.5">
@@ -264,7 +276,7 @@ export function ChurchDirectory({
         </div>
       ) : filtered.length > 0 ? (
         <p className="text-muted-foreground text-sm">
-          {formatCount(filtered.length)} paróquia(s)
+          {formatCounted(filtered.length, { one: "paróquia", other: "paróquias" })}
         </p>
       ) : null}
     </div>

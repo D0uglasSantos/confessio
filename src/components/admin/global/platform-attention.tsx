@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { formatCounted } from "@/lib/admin/format";
 import type { GlobalChurchSummary } from "@/lib/admin/global-metrics";
 
 export function PlatformAttention({
@@ -37,7 +38,10 @@ export function PlatformAttention({
           items={live.map((church) => ({
             id: church.id,
             name: church.name,
-            detail: `${church.sessions_open_now} sessão(ões) aberta(s)`,
+            detail: formatCounted(church.sessions_open_now, {
+              one: "sessão aberta",
+              other: "sessões abertas",
+            }),
             href: "/admin/global/paroquias?filtro=fila-ativa",
           }))}
         />

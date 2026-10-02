@@ -60,9 +60,9 @@ export function AssignChurchAdminDialog({
         <DialogHeader>
           <DialogTitle>Vincular admin — {churchName}</DialogTitle>
           <DialogDescription>
-            Informe o ID de usuário (auth.users.id) já criado no Supabase Auth.
-            Esse usuário passa a administrar esta paróquia em{" "}
-            <code>/admin</code>.
+            Informe o ID do usuário já criado no Auth da plataforma. A senha
+            nasce lá (mínimo de 10 caracteres no fluxo de redefinição). Esse
+            usuário passa a administrar esta paróquia em <code>/admin</code>.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">

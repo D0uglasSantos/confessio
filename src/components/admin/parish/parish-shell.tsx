@@ -84,7 +84,12 @@ export function ParishShell({
             <span className="sr-only">Abrir menu</span>
           </Button>
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium">{churchName}</p>
+            <p
+              className="line-clamp-2 text-sm font-medium leading-tight"
+              title={churchName}
+            >
+              {churchName}
+            </p>
             <p className="text-muted-foreground text-xs">Secretaria</p>
           </div>
         </header>
@@ -122,7 +127,10 @@ function SidebarContent({
       <div className="flex items-center gap-3 px-4 py-5">
         <BrandMark compact onDark />
         <div className="min-w-0">
-          <p className="font-heading truncate text-sm leading-tight">
+          <p
+            className="font-heading line-clamp-2 text-sm leading-tight"
+            title={churchName}
+          >
             {churchName}
           </p>
           <p className="platform-nav-muted mt-0.5 text-[11px] tracking-[0.16em] uppercase">

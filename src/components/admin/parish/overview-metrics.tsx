@@ -5,7 +5,7 @@ import {
   RadioIcon,
 } from "lucide-react";
 
-import { formatCount } from "@/lib/admin/format";
+import { formatCount, formatCounted } from "@/lib/admin/format";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   getParishSessionStats,
@@ -23,10 +23,10 @@ export function ParishOverviewMetrics({
     {
       label: "Em operação agora",
       value: formatCount(stats.live.length),
-      hint:
-        stats.live.length === 1
-          ? "1 sessão com fila em andamento"
-          : `${formatCount(stats.live.length)} sessões com fila em andamento`,
+      hint: formatCounted(stats.live.length, {
+        one: "sessão com fila em andamento",
+        other: "sessões com fila em andamento",
+      }),
       icon: RadioIcon,
       live: stats.live.length > 0,
     },
