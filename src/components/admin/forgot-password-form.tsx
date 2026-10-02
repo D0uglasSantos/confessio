@@ -39,7 +39,7 @@ export function ForgotPasswordForm() {
           name="email"
           type="email"
           autoComplete="username"
-          placeholder="e-mail do Auth no Supabase"
+          placeholder="E-mail da secretaria"
           required
         />
       </div>

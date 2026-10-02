@@ -11,7 +11,7 @@ export function adminSignInMessage(code: AdminSignInFailure) {
     case "missing":
       return "Informe e-mail e senha.";
     case "unconfirmed":
-      return "Confirme o e-mail deste usuário no painel de Auth do Supabase.";
+      return "Este e-mail ainda não foi confirmado. Fale com a administração da plataforma.";
     case "forbidden":
       return "Este usuário não é administrador de paróquia nem da plataforma.";
     case "config":
@@ -19,6 +19,6 @@ export function adminSignInMessage(code: AdminSignInFailure) {
     case "unexpected":
       return "Não foi possível entrar agora. Tente de novo em instantes.";
     default:
-      return "Credenciais inválidas. Use Esqueci a senha se não lembrar.";
+      return "E-mail ou senha incorretos.";
   }
 }

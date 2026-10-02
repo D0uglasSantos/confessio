@@ -67,8 +67,9 @@ export function LoginForm({ errorHint }: { errorHint?: string }) {
           name="email"
           type="email"
           autoComplete="username"
+          autoFocus
           defaultValue={localDev ? "admin@paroquia.local" : undefined}
-          placeholder={localDev ? undefined : "e-mail do Auth no Supabase"}
+          placeholder={localDev ? undefined : "E-mail da secretaria"}
           required
         />
       </div>
@@ -113,7 +114,9 @@ export function LoginForm({ errorHint }: { errorHint?: string }) {
       <p className="text-xs text-muted-foreground">
         {localDev
           ? "Ambiente local: secretaria admin@paroquia.local / admin123 · plataforma global@plataforma.local / global123"
-          : "Use o e-mail e a senha do usuário criado em Authentication → Users. O seed local não existe no cloud."}
+          : process.env.NODE_ENV !== "production"
+            ? "Use o e-mail e a senha do usuário criado em Authentication → Users. O seed local não existe no cloud."
+            : "Problemas para entrar? Fale com a administração da plataforma."}
       </p>
     </form>
   );

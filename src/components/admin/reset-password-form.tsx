@@ -38,9 +38,12 @@ export function ResetPasswordForm({ hasSession }: { hasSession: boolean }) {
           name="password"
           type="password"
           autoComplete="new-password"
-          minLength={8}
+          minLength={10}
           required
         />
+        <p className="text-muted-foreground text-xs">
+          Use pelo menos 10 caracteres.
+        </p>
       </div>
 
       <div className="space-y-2">
@@ -50,7 +53,7 @@ export function ResetPasswordForm({ hasSession }: { hasSession: boolean }) {
           name="confirm"
           type="password"
           autoComplete="new-password"
-          minLength={8}
+          minLength={10}
           required
         />
       </div>

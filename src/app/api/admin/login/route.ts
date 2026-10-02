@@ -1,6 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
 
+import {
+  applyLoginAttemptCookie,
+  isLoginThrottled,
+} from "@/lib/admin/login-throttle";
 import { signInAdminWithPassword } from "@/lib/admin/sign-in";
 import type { AdminSignInFailure } from "@/lib/admin/sign-in-messages";
 import { getSupabasePublicEnv } from "@/lib/supabase/env";
@@ -51,6 +55,12 @@ export async function POST(request: NextRequest) {
     },
   });
 
+  if (isLoginThrottled(request)) {
+    const throttled = redirectTo(request, loginErrorPath("credentials"));
+    applyLoginAttemptCookie(throttled, request, true);
+    return throttled;
+  }
+
   let result: Awaited<ReturnType<typeof signInAdminWithPassword>>;
 
   try {
@@ -70,6 +80,7 @@ export async function POST(request: NextRequest) {
   Object.entries(pendingHeaders).forEach(([key, value]) => {
     response.headers.set(key, value);
   });
+  applyLoginAttemptCookie(response, request, !result.ok);
 
   return response;
 }
