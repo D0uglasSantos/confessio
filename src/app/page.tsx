@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { BrandMark } from "@/components/brand-mark";
+import { SiteFooter } from "@/components/site-footer";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 
@@ -19,7 +20,7 @@ const trustPoints = [
     icon: LockKeyhole,
     title: "Privacidade por princípio",
     description:
-      "O fiel entra sem nome, telefone, e-mail ou qualquer identificação pessoal.",
+      "O fiel entra sem conta. Nome e e-mail não são pedidos; telefone só se quiser aviso no WhatsApp.",
   },
   {
     icon: Radio,
@@ -96,11 +97,17 @@ export default function HomePage() {
                 Entrar na administração
                 <ArrowRight aria-hidden="true" />
               </Link>
-              <span className="text-muted-foreground inline-flex items-center gap-2 text-sm">
-                <CircleCheck className="text-brand-sage size-4" />
-                Fiel e sacerdote não criam conta
-              </span>
+              <Link
+                href="/contato"
+                className={buttonVariants({ variant: "outline", size: "lg" })}
+              >
+                Quero levar para minha paróquia
+              </Link>
             </div>
+            <p className="text-muted-foreground mt-4 inline-flex items-center gap-2 text-sm">
+              <CircleCheck className="text-brand-sage size-4" />
+              Fiel e sacerdote não criam conta
+            </p>
           </div>
 
           <div className="brand-panel ring-primary/15 rounded-[2rem] p-5 shadow-[0_36px_80px_-54px_rgba(54,33,62,0.75)] ring-1 sm:p-8">
@@ -133,13 +140,13 @@ export default function HomePage() {
               <div className="mt-4 grid grid-cols-2 gap-4">
                 <div className="bg-muted/75 rounded-2xl p-4">
                   <p className="text-muted-foreground text-xs font-medium">
-                    Aguardando
+                    12 aguardando
                   </p>
                   <p className="font-heading mt-1 text-3xl font-semibold">12</p>
                 </div>
                 <div className="bg-muted/75 rounded-2xl p-4">
                   <p className="text-muted-foreground text-xs font-medium">
-                    Confessionários
+                    3 confessionários
                   </p>
                   <p className="font-heading mt-1 text-3xl font-semibold">3</p>
                 </div>
@@ -202,13 +209,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <footer className="border-border/80 text-muted-foreground flex flex-col gap-4 border-t py-8 text-sm sm:flex-row sm:items-center sm:justify-between">
-          <BrandMark tagline />
-          <p className="max-w-xl sm:text-right">
-            A plataforma administra somente o fluxo. Nenhum conteúdo da
-            confissão ou dado pessoal do fiel é armazenado.
-          </p>
-        </footer>
+        <SiteFooter extra="A plataforma administra somente o fluxo. Nunca armazena o conteúdo da confissão." />
       </div>
     </main>
   );
