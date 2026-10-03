@@ -4,6 +4,7 @@ export type StoredTicket = {
   sessionId: string;
   anonymousToken: string;
   publicCode: string;
+  wantsWhatsapp?: boolean;
 };
 
 let cachedRaw: string | null | undefined;
