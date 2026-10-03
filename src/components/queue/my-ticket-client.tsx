@@ -239,6 +239,13 @@ export function MyTicketClient({
             />
           ) : null}
 
+          {stored.wantsWhatsapp &&
+          (view === "WAITING" || view === "NEAR" || view === "NEXT") ? (
+            <p className="text-muted-foreground text-center text-sm leading-relaxed">
+              Também avisamos no WhatsApp quando for a sua vez.
+            </p>
+          ) : null}
+
           {view === "NEAR" ? (
             <StatusBlock
               title="Você está próximo"

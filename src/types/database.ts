@@ -433,6 +433,7 @@ export type Database = {
           started_at: string | null
           station_id: string | null
           status: Database["public"]["Enums"]["ticket_status"]
+          whatsapp_sent_at: string | null
         }
         Insert: {
           called_at?: string | null
@@ -449,6 +450,7 @@ export type Database = {
           started_at?: string | null
           station_id?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
+          whatsapp_sent_at?: string | null
         }
         Update: {
           called_at?: string | null
@@ -465,6 +467,7 @@ export type Database = {
           started_at?: string | null
           station_id?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
+          whatsapp_sent_at?: string | null
         }
         Relationships: [
           {
