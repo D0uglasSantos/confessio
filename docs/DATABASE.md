@@ -316,6 +316,8 @@ ENTRY_CLOSED
 FINISHED
 ```
 
+`ends_at` é o horário de fim do agendamento, não o fim do atendimento. Quando a sessão está `OPEN` e `ends_at <= now()`, o PostgreSQL persiste `ENTRY_CLOSED` (`private.close_entry_if_ended`), chamado em `create_ticket`, `admin_issue_paper_tickets`, `get_public_session_state`, `get_station_state` e `admin_get_session_state`. Novos tickets recebem `SESSION_NOT_OPEN`. Quem já está `WAITING` / `CALLED` / `IN_SERVICE` continua até ser atendido, desistir ou o admin finalizar a sessão. Sem `ends_at`, só o admin encerra a entrada. A sessão não vira `FINISHED` sozinha.
+
 Cancelamento excepcional:
 
 ```text
@@ -2456,6 +2458,8 @@ DRAFT → OPEN
 
 Depois disso `create_ticket()` passa a aceitar entradas.
 
+Assim que `ends_at` chega, a entrada fecha sozinha (`OPEN` → `ENTRY_CLOSED`). O admin ainda pode encerrar a entrada antes do horário. Finalizar a sessão continua sendo ação manual.
+
 ---
 
 # 12. Entrada do fiel
@@ -3281,13 +3285,15 @@ Session:
 ENTRY_CLOSED
 ```
 
-`create_ticket()`:
+ou `OPEN` com `ends_at` já no passado (o banco persiste `ENTRY_CLOSED`).
+
+`create_ticket()` sem token existente:
 
 ```text
 SESSION_NOT_OPEN
 ```
 
-Mas um sacerdote ainda pode:
+Quem já tem senha ainda recupera o ticket. Um sacerdote ainda pode:
 
 ```text
 call_next_ticket()
