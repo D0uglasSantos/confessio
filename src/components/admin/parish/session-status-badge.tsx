@@ -15,10 +15,10 @@ export function SessionStatusBadge({
 
   if (isSessionLive(status)) {
     return (
-      <Badge className="gap-1.5 bg-emerald-700 text-white">
+      <Badge variant="success" className="gap-1.5">
         <span className="relative flex size-1.5">
-          <span className="absolute inline-flex size-full animate-ping rounded-full bg-white/80" />
-          <span className="relative inline-flex size-1.5 rounded-full bg-white" />
+          <span className="bg-brand-sage/70 absolute inline-flex size-full animate-ping rounded-full motion-reduce:animate-none" />
+          <span className="bg-brand-sage relative inline-flex size-1.5 rounded-full" />
         </span>
         <RadioIcon className="size-3" aria-hidden="true" />
         {label}

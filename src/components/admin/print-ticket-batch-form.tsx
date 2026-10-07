@@ -85,7 +85,7 @@ export function PrintTicketBatchForm({
 
       <Button
         type="button"
-        size="lg"
+        variant="secondary"
         loading={pending}
         disabled={disabled}
         title={

@@ -71,11 +71,20 @@ export function LoginForm({ errorHint }: { errorHint?: string }) {
           defaultValue={localDev ? "admin@paroquia.local" : undefined}
           placeholder={localDev ? undefined : "E-mail da secretaria"}
           required
+          className="h-12"
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="password">Senha</Label>
+        <div className="flex items-center justify-between gap-3">
+          <Label htmlFor="password">Senha</Label>
+          <Link
+            href="/admin/esqueci-senha"
+            className="text-muted-foreground text-sm underline-offset-4 hover:underline"
+          >
+            Esqueci a senha
+          </Link>
+        </div>
         <div className="relative">
           <Input
             id="password"
@@ -83,14 +92,14 @@ export function LoginForm({ errorHint }: { errorHint?: string }) {
             type={showPassword ? "text" : "password"}
             autoComplete="current-password"
             defaultValue={localDev ? "admin123" : undefined}
-            className="pr-9"
+            className="h-12 pr-11"
             required
           />
           <Button
             type="button"
             variant="ghost"
-            size="icon-xs"
-            className="absolute top-1/2 right-1 -translate-y-1/2 text-muted-foreground hover:bg-transparent hover:text-foreground"
+            size="icon-sm"
+            className="absolute top-1/2 right-1.5 -translate-y-1/2 text-muted-foreground hover:bg-transparent hover:text-foreground"
             onClick={() => setShowPassword((visible) => !visible)}
             aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
             aria-pressed={showPassword}
@@ -101,15 +110,6 @@ export function LoginForm({ errorHint }: { errorHint?: string }) {
       </div>
 
       <SubmitButton submitting={submitting} />
-
-      <p className="text-center text-sm">
-        <Link
-          href="/admin/esqueci-senha"
-          className="text-muted-foreground underline-offset-4 hover:underline"
-        >
-          Esqueci a senha
-        </Link>
-      </p>
 
       <p className="text-xs text-muted-foreground">
         {localDev

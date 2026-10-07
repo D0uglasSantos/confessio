@@ -10,7 +10,6 @@ import { useInFlightLock } from "@/hooks/use-in-flight-lock";
 import { useTicket } from "@/hooks/use-ticket";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { formatPhoneInput, phoneInputToRpc } from "@/lib/queue/phone";
 import { mapQueueError } from "@/lib/queue/errors";
 import type { FielTicket } from "@/lib/queue/types";
@@ -30,6 +29,8 @@ export function JoinQueueButton({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [phone, setPhone] = useState("");
+  const [whatsappOpen, setWhatsappOpen] = useState(false);
+  const [paperOpen, setPaperOpen] = useState(false);
   const lock = useInFlightLock();
 
   function join() {
@@ -89,40 +90,12 @@ export function JoinQueueButton({
 
   return (
     <form
-      className="space-y-3"
+      className="space-y-4"
       onSubmit={(event) => {
         event.preventDefault();
         join();
       }}
     >
-      <div className="space-y-2">
-        <Label htmlFor="join-phone" className="text-base font-semibold">
-          Receber aviso no WhatsApp{" "}
-          <span className="text-muted-foreground font-normal">(opcional)</span>
-        </Label>
-        <p className="text-muted-foreground text-sm leading-relaxed">
-          Se quiser, avisamos no WhatsApp quando for a sua vez. O número não
-          aparece no telão.
-        </p>
-        <div className="relative">
-          <MessageCircleIcon
-            aria-hidden
-            className="text-primary pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2"
-          />
-          <Input
-            id="join-phone"
-            name="phone"
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            placeholder="(61) 99999-9999"
-            value={phone}
-            onChange={(event) => setPhone(formatPhoneInput(event.target.value))}
-            disabled={disabled || pending}
-            className="h-14 rounded-full pl-12 text-base"
-          />
-        </div>
-      </div>
       {error ? (
         <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
           {error}
@@ -131,12 +104,67 @@ export function JoinQueueButton({
       <Button
         type="submit"
         size="lg"
-        className="h-14 w-full touch-manipulation rounded-full text-base font-semibold active:scale-[0.99]"
+        className="h-16 w-full touch-manipulation text-base font-semibold active:scale-[0.99]"
         loading={pending}
         disabled={disabled}
       >
         {pending ? "Entrando na fila..." : "Entrar na fila"}
       </Button>
+
+      <div className="space-y-2">
+        <button
+          type="button"
+          className="text-muted-foreground text-left text-sm underline-offset-4 hover:underline"
+          aria-expanded={whatsappOpen}
+          onClick={() => setWhatsappOpen((value) => !value)}
+        >
+          Quer receber um aviso no WhatsApp?
+        </button>
+        {whatsappOpen ? (
+          <div className="space-y-2">
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              Se quiser, avisamos no WhatsApp quando for a sua vez. O número não
+              aparece no telão.
+            </p>
+            <div className="relative">
+              <MessageCircleIcon
+                aria-hidden
+                className="text-muted-foreground pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2"
+              />
+              <Input
+                id="join-phone"
+                name="phone"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                aria-label="WhatsApp (opcional)"
+                placeholder="(61) 99999-9999"
+                value={phone}
+                onChange={(event) => setPhone(formatPhoneInput(event.target.value))}
+                disabled={disabled || pending}
+                className="h-12 rounded-xl pl-12 text-base"
+              />
+            </div>
+          </div>
+        ) : null}
+      </div>
+
+      <div>
+        <button
+          type="button"
+          className="text-muted-foreground text-left text-sm underline-offset-4 hover:underline"
+          aria-expanded={paperOpen}
+          onClick={() => setPaperOpen((value) => !value)}
+        >
+          Já tenho uma senha de papel
+        </button>
+        {paperOpen ? (
+          <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
+            Aponte a câmera do celular para o QR no papel. Sem celular, siga
+            pelo papel e pelo telão.
+          </p>
+        ) : null}
+      </div>
     </form>
   );
 }

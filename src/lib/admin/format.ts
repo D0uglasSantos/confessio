@@ -34,6 +34,13 @@ export function formatCount(value: number) {
   return new Intl.NumberFormat("pt-BR").format(value);
 }
 
+export function formatPercent(value: number, fractionDigits = 1) {
+  return `${new Intl.NumberFormat("pt-BR", {
+    maximumFractionDigits: fractionDigits,
+    minimumFractionDigits: 0,
+  }).format(value)}%`;
+}
+
 export function formatAdminDayTime(value: string) {
   return formatDateTime(value, {
     day: "2-digit",

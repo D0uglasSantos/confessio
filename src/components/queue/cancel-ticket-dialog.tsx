@@ -64,9 +64,8 @@ export function CancelTicketDialog({
       <DialogTrigger
         render={
           <Button
-            variant="outline"
-            className="h-14 w-full touch-manipulation text-base"
-            size="lg"
+            variant="ghost"
+            className="h-12 w-full touch-manipulation text-base"
             disabled={busy}
           />
         }

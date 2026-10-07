@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { CopyIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { toQrDataUrl } from "@/lib/qr";
@@ -36,30 +37,35 @@ export function QrCodeCard({
   }
 
   return (
-    <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+    <div className="space-y-4">
       {dataUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={dataUrl}
           alt={`QR Code da sessão ${slug}`}
-          className="size-40 rounded-xl border border-border bg-card"
+          className="size-44 rounded-xl border border-border/80 bg-card p-2"
         />
       ) : (
-        <div className="size-40 animate-pulse rounded-xl bg-muted" />
+        <div className="size-44 animate-pulse rounded-xl bg-muted" />
       )}
 
       <div className="space-y-3">
-        <div>
-          <p className="text-sm text-muted-foreground">Link público do fiel</p>
-          <p className="break-all font-medium">{url}</p>
+        <div className="flex items-start gap-2">
+          <p className="min-w-0 flex-1 break-all text-sm">{url}</p>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Copiar link"
+            onClick={copyLink}
+          >
+            <CopyIcon />
+          </Button>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button type="button" variant="outline" onClick={copyLink}>
-            Copiar link
-          </Button>
           {dataUrl ? (
             <a href={dataUrl} download={`qr-${slug}.png`}>
-              <Button type="button" variant="secondary">
+              <Button type="button" variant="outline" size="sm">
                 Baixar PNG
               </Button>
             </a>
@@ -68,7 +74,7 @@ export function QrCodeCard({
             href={posterHref}
             target="_blank"
             rel="noreferrer"
-            className={buttonVariants({ variant: "secondary" })}
+            className={buttonVariants({ variant: "outline", size: "sm" })}
           >
             Imprimir cartaz
           </Link>

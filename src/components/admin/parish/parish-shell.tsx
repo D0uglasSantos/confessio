@@ -3,15 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { MenuIcon, XIcon } from "lucide-react";
+import { MenuIcon, PanelLeftIcon, XIcon } from "lucide-react";
 
-import { SignOutButton } from "@/components/admin/sign-out-button";
+import { UserMenu } from "@/components/admin/user-menu";
 import {
   isParishNavActive,
   parishNavItems,
 } from "@/components/admin/parish/nav";
 import { BrandMark } from "@/components/brand-mark";
 import { Button } from "@/components/ui/button";
+import { cn } from "cn";
 
 export function ParishShell({
   churchName,
@@ -28,15 +29,23 @@ export function ParishShell({
 }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
     <div className="platform-console flex h-dvh overflow-hidden">
-      <aside className="platform-nav hidden h-full w-60 shrink-0 flex-col lg:flex">
+      <aside
+        className={cn(
+          "platform-nav hidden h-full shrink-0 flex-col transition-[width] duration-200 ease-out lg:flex",
+          collapsed ? "w-[4.5rem]" : "w-60",
+        )}
+      >
         <SidebarContent
           pathname={pathname}
           churchName={churchName}
           email={email}
           isGlobalAdmin={isGlobalAdmin}
+          collapsed={collapsed}
+          onToggleCollapse={() => setCollapsed((value) => !value)}
         />
       </aside>
 
@@ -44,17 +53,16 @@ export function ParishShell({
         <div className="fixed inset-0 z-50 lg:hidden">
           <button
             type="button"
-            className="absolute inset-0 bg-black/40"
+            className="absolute inset-0 bg-black/30"
             aria-label="Fechar menu"
             onClick={() => setMobileOpen(false)}
           />
-          <aside className="platform-nav relative flex h-full w-64 flex-col shadow-xl">
+          <aside className="platform-nav relative flex h-full w-64 flex-col shadow-md">
             <div className="flex justify-end p-3">
               <Button
                 type="button"
                 variant="ghost"
                 size="icon-sm"
-                className="text-primary-foreground hover:text-primary-foreground hover:bg-white/10"
                 onClick={() => setMobileOpen(false)}
               >
                 <XIcon />
@@ -73,7 +81,7 @@ export function ParishShell({
       ) : null}
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <header className="bg-card flex shrink-0 items-center gap-3 border-b px-4 py-3 lg:hidden">
+        <header className="bg-background/90 flex shrink-0 items-center gap-3 border-b px-4 py-3 backdrop-blur lg:hidden">
           <Button
             type="button"
             variant="outline"
@@ -93,8 +101,8 @@ export function ParishShell({
             <p className="text-muted-foreground text-xs">Secretaria</p>
           </div>
         </header>
-        <main className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-          <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+        <main className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
+          <div className="mx-auto flex w-full max-w-[90rem] flex-col gap-8 2xl:max-w-[100rem]">
             {churchActive ? null : (
               <p className="border-destructive/30 bg-destructive/10 text-destructive rounded-lg border px-3 py-2 text-sm">
                 Esta paróquia está desativada. O histórico permanece visível, mas
@@ -114,29 +122,40 @@ function SidebarContent({
   churchName,
   email,
   isGlobalAdmin,
+  collapsed = false,
   onNavigate,
+  onToggleCollapse,
 }: {
   pathname: string;
   churchName: string;
   email: string;
   isGlobalAdmin: boolean;
+  collapsed?: boolean;
   onNavigate?: () => void;
+  onToggleCollapse?: () => void;
 }) {
   return (
     <>
-      <div className="flex items-center gap-3 px-4 py-5">
-        <BrandMark compact onDark />
-        <div className="min-w-0">
-          <p
-            className="font-heading line-clamp-2 text-sm leading-tight"
-            title={churchName}
-          >
-            {churchName}
-          </p>
-          <p className="platform-nav-muted mt-0.5 text-[11px] tracking-[0.16em] uppercase">
-            Secretaria
-          </p>
-        </div>
+      <div
+        className={cn(
+          "flex items-center gap-3 px-3 py-5",
+          collapsed && "flex-col px-2",
+        )}
+      >
+        <BrandMark compact />
+        {collapsed ? null : (
+          <div className="min-w-0">
+            <p
+              className="font-heading line-clamp-2 text-sm leading-tight"
+              title={churchName}
+            >
+              {churchName}
+            </p>
+            <p className="platform-nav-muted mt-0.5 text-[11px] tracking-[0.08em] uppercase">
+              Secretaria
+            </p>
+          </div>
+        )}
       </div>
 
       <nav
@@ -153,30 +172,48 @@ function SidebarContent({
               href={item.href}
               data-active={active}
               aria-current={active ? "page" : undefined}
-              className="platform-nav-link flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium"
+              title={collapsed ? item.label : undefined}
+              className={cn(
+                "platform-nav-link flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium",
+                collapsed && "justify-center px-0",
+              )}
               onClick={onNavigate}
             >
               <Icon className="size-4 shrink-0" />
-              {item.label}
+              {collapsed ? <span className="sr-only">{item.label}</span> : item.label}
             </Link>
           );
         })}
       </nav>
 
-      <div className="mt-auto shrink-0 space-y-3 border-t border-[var(--platform-nav-border)] px-3 py-4">
-        <p className="platform-nav-muted truncate px-1 text-xs" title={email}>
-          {email || "Secretaria"}
-        </p>
+      <div className="mt-auto shrink-0 space-y-2 border-t border-[var(--platform-nav-border)] px-2 py-3">
         {isGlobalAdmin ? (
           <Link
             href="/admin/global"
-            className="platform-nav-link block rounded-md px-3 py-2 text-sm"
+            className={cn(
+              "platform-nav-link block rounded-xl px-3 py-2 text-sm",
+              collapsed && "px-0 text-center",
+            )}
+            title={collapsed ? "Painel da plataforma" : undefined}
             onClick={onNavigate}
           >
-            Painel da plataforma
+            {collapsed ? "Plataforma" : "Painel da plataforma"}
           </Link>
         ) : null}
-        <SignOutButton className="w-full justify-start text-[var(--platform-nav-muted)] hover:bg-white/10 hover:text-[var(--platform-nav-foreground)]" />
+        {onToggleCollapse ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className={cn("w-full", collapsed ? "justify-center" : "justify-start")}
+            onClick={onToggleCollapse}
+            aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
+          >
+            <PanelLeftIcon />
+            {collapsed ? null : "Recolher"}
+          </Button>
+        ) : null}
+        <UserMenu email={email} collapsed={collapsed} />
       </div>
     </>
   );

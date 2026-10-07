@@ -17,9 +17,9 @@ type PriestActionsProps = {
 };
 
 const primaryBtn =
-  "h-16 w-full touch-manipulation text-lg font-semibold active:scale-[0.99]";
+  "h-16 min-h-16 w-full touch-manipulation text-lg font-semibold active:scale-[0.99]";
 const secondaryBtn =
-  "h-14 w-full touch-manipulation text-base active:scale-[0.99]";
+  "h-12 min-h-12 w-full touch-manipulation text-base active:scale-[0.99]";
 
 export function PriestActions({
   stationId,
@@ -107,7 +107,7 @@ export function PriestActions({
           <Button
             type="button"
             size="lg"
-            variant="outline"
+            variant="ghost"
             className={secondaryBtn}
             loading={pendingAction === "pause"}
             disabled={pending}
@@ -141,49 +141,51 @@ export function PriestActions({
           >
             {pendingAction === "start" ? "Iniciando..." : "Iniciar atendimento"}
           </Button>
-          <Button
-            type="button"
-            size="lg"
-            variant="secondary"
-            className={secondaryBtn}
-            loading={pendingAction === "recall"}
-            disabled={pending}
-            onClick={() =>
-              run("recall", "Senha chamada novamente", async () =>
-                createAnonClient().rpc("recall_ticket", {
-                  ...auth,
-                  p_ticket_id: ticket.id,
-                }),
-              )
-            }
-          >
-            {pendingAction === "recall" ? "Chamando..." : "Chamar novamente"}
-          </Button>
-          <Button
-            type="button"
-            size="lg"
-            variant="destructive"
-            className={secondaryBtn}
-            loading={pendingAction === "noshow"}
-            disabled={pending}
-            onClick={() =>
-              run(
-                "noshow",
-                "Marcado como não compareceu",
-                async () =>
-                  createAnonClient().rpc("mark_no_show", {
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              type="button"
+              size="lg"
+              variant="secondary"
+              className={secondaryBtn}
+              loading={pendingAction === "recall"}
+              disabled={pending}
+              onClick={() =>
+                run("recall", "Senha chamada novamente", async () =>
+                  createAnonClient().rpc("recall_ticket", {
                     ...auth,
                     p_ticket_id: ticket.id,
                   }),
-                {
-                  confirm:
-                    "Confirmar ausência? A senha será marcada como não compareceu.",
-                },
-              )
-            }
-          >
-            {pendingAction === "noshow" ? "Registrando..." : "Não compareceu"}
-          </Button>
+                )
+              }
+            >
+              {pendingAction === "recall" ? "Chamando..." : "Rechamar"}
+            </Button>
+            <Button
+              type="button"
+              size="lg"
+              variant="danger-ghost"
+              className={secondaryBtn}
+              loading={pendingAction === "noshow"}
+              disabled={pending}
+              onClick={() =>
+                run(
+                  "noshow",
+                  "Marcado como não compareceu",
+                  async () =>
+                    createAnonClient().rpc("mark_no_show", {
+                      ...auth,
+                      p_ticket_id: ticket.id,
+                    }),
+                  {
+                    confirm:
+                      "Confirmar ausência? A senha será marcada como não compareceu.",
+                  },
+                )
+              }
+            >
+              {pendingAction === "noshow" ? "Registrando..." : "Ausente"}
+            </Button>
+          </div>
         </div>
       ) : null}
 

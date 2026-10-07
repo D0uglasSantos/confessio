@@ -99,13 +99,20 @@ export function formatDuration(value: number | null) {
     return `${totalSeconds} s`;
   }
 
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  if (seconds === 0) {
-    return `${minutes} min`;
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  if (totalMinutes < 60) {
+    return `${totalMinutes} min`;
   }
 
-  return `${minutes} min ${seconds} s`;
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours < 24) {
+    return minutes === 0 ? `${hours} h` : `${hours} h ${minutes} min`;
+  }
+
+  const days = Math.floor(hours / 24);
+  const remainHours = hours % 24;
+  return remainHours === 0 ? `${days} d` : `${days} d ${remainHours} h`;
 }
 
 export function formatMinutes(value: number | null) {

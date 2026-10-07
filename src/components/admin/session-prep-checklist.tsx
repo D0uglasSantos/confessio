@@ -1,13 +1,6 @@
 import { CheckCircle2Icon, CircleIcon } from "lucide-react";
 import Link from "next/link";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import type { SessionStatus } from "@/lib/admin/metrics";
 
 export function SessionPrepChecklist({
@@ -46,44 +39,33 @@ export function SessionPrepChecklist({
   ];
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Preparação</CardTitle>
-        <CardDescription>
-          Marque o caminho até abrir a fila. Os itens com link já podem ser
-          feitos agora.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <ol className="space-y-2">
-          {items.map((item) => {
-            const Icon = item.done ? CheckCircle2Icon : CircleIcon;
-            return (
-              <li key={item.label} className="flex items-start gap-2 text-sm">
-                <Icon
-                  className={
-                    item.done
-                      ? "text-brand-sage mt-0.5 size-4"
-                      : "text-muted-foreground mt-0.5 size-4"
-                  }
-                />
-                {item.href ? (
-                  <Link
-                    href={item.href}
-                    className="hover:underline underline-offset-4"
-                    target={item.href.startsWith("/") ? "_blank" : undefined}
-                    rel={item.href.startsWith("/") ? "noreferrer" : undefined}
-                  >
-                    {item.label}
-                  </Link>
-                ) : (
-                  <span>{item.label}</span>
-                )}
-              </li>
-            );
-          })}
-            </ol>
-      </CardContent>
-    </Card>
+    <ol className="relative space-y-0 border-l border-border/80 pl-5">
+      {items.map((item) => {
+        const Icon = item.done ? CheckCircle2Icon : CircleIcon;
+        return (
+          <li key={item.label} className="relative pb-5 last:pb-0">
+            <Icon
+              className={
+                item.done
+                  ? "text-brand-sage absolute top-0.5 -left-[1.6rem] size-4 bg-background"
+                  : "text-muted-foreground absolute top-0.5 -left-[1.6rem] size-4 bg-background"
+              }
+            />
+            {item.href ? (
+              <Link
+                href={item.href}
+                className="hover:underline text-sm underline-offset-4"
+                target={item.href.startsWith("/") ? "_blank" : undefined}
+                rel={item.href.startsWith("/") ? "noreferrer" : undefined}
+              >
+                {item.label}
+              </Link>
+            ) : (
+              <span className="text-sm">{item.label}</span>
+            )}
+          </li>
+        );
+      })}
+    </ol>
   );
 }
