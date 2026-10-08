@@ -16,6 +16,7 @@ import {
 } from "@/lib/admin/datetime";
 import { formatPublicCode } from "@/lib/queue/ticket";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -57,6 +58,7 @@ export function CreateSessionForm({
   const [stations, setStations] = useState<StationDraft[]>(defaultStations);
   const [prefixError, setPrefixError] = useState<string | null>(null);
   const [rangeError, setRangeError] = useState<string | null>(null);
+  const [removeIndex, setRemoveIndex] = useState<number | null>(null);
 
   const stationsJson = useMemo(() => JSON.stringify(stations), [stations]);
 
@@ -95,18 +97,18 @@ export function CreateSessionForm({
 
   function removeStation(index: number) {
     const station = stations[index];
-    if (
-      station?.priestName.trim() &&
-      !window.confirm(
-        `Remover ${station.name}? O nome do sacerdote já está preenchido.`,
-      )
-    ) {
+    if (station?.priestName.trim()) {
+      setRemoveIndex(index);
       return;
     }
     setStations((current) => current.filter((_, itemIndex) => itemIndex !== index));
   }
 
+  const stationToRemove =
+    removeIndex === null ? null : stations[removeIndex] ?? null;
+
   return (
+    <>
     <form
       action={formAction}
       className="grid items-start gap-10 xl:grid-cols-[minmax(0,1fr)_20rem]"
@@ -329,5 +331,23 @@ export function CreateSessionForm({
         </Button>
       </aside>
     </form>
+
+      <ConfirmDialog
+        open={stationToRemove !== null}
+        onOpenChange={(open) => {
+          if (!open) setRemoveIndex(null);
+        }}
+        title={`Remover ${stationToRemove?.name ?? "confessionário"}?`}
+        description="O nome do sacerdote já está preenchido."
+        confirmLabel="Remover"
+        onConfirm={() => {
+          if (removeIndex === null) return;
+          setStations((current) =>
+            current.filter((_, itemIndex) => itemIndex !== removeIndex),
+          );
+          setRemoveIndex(null);
+        }}
+      />
+    </>
   );
 }

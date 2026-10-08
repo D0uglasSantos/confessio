@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { useInFlightLock } from "@/hooks/use-in-flight-lock";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { mapQueueError } from "@/lib/queue/errors";
 import type { StationState } from "@/lib/queue/types";
 import { createAnonClient } from "@/lib/supabase/anon";
@@ -30,6 +31,15 @@ export function PriestActions({
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [confirm, setConfirm] = useState<{
+    actionKey: string;
+    title: string;
+    description: string;
+    confirmLabel: string;
+    pendingLabel: string;
+    successLabel: string;
+    action: () => Promise<{ error: { message: string } | null }>;
+  } | null>(null);
   const lock = useInFlightLock();
   const pending = pendingAction !== null;
 
@@ -40,14 +50,35 @@ export function PriestActions({
     actionKey: string,
     label: string,
     action: () => Promise<{ error: { message: string } | null }>,
-    options?: { confirm?: string },
+    options?: {
+      title: string;
+      description: string;
+      confirmLabel: string;
+      pendingLabel: string;
+    },
   ) {
-    if (!lock.tryAcquire()) return;
-
-    if (options?.confirm && !window.confirm(options.confirm)) {
-      lock.release();
+    if (options) {
+      setConfirm({
+        actionKey,
+        title: options.title,
+        description: options.description,
+        confirmLabel: options.confirmLabel,
+        pendingLabel: options.pendingLabel,
+        successLabel: label,
+        action,
+      });
       return;
     }
+
+    execute(actionKey, label, action);
+  }
+
+  function execute(
+    actionKey: string,
+    label: string,
+    action: () => Promise<{ error: { message: string } | null }>,
+  ) {
+    if (!lock.tryAcquire()) return;
 
     setPendingAction(actionKey);
     startTransition(async () => {
@@ -66,6 +97,7 @@ export function PriestActions({
         }
 
         toast.success(label);
+        setConfirm(null);
         await onDone();
       } finally {
         setPendingAction(null);
@@ -177,8 +209,11 @@ export function PriestActions({
                       p_ticket_id: ticket.id,
                     }),
                   {
-                    confirm:
-                      "Confirmar ausência? A senha será marcada como não compareceu.",
+                    title: "Marcar ausência?",
+                    description:
+                      "A senha será marcada como não compareceu e o confessionário volta a ficar disponível.",
+                    confirmLabel: "Confirmar ausência",
+                    pendingLabel: "Registrando...",
                   },
                 )
               }
@@ -206,7 +241,10 @@ export function PriestActions({
                   p_ticket_id: ticket.id,
                 }),
               {
-                confirm: "Finalizar o atendimento desta senha?",
+                title: "Finalizar atendimento?",
+                description: "Confirma que esta senha já foi atendida.",
+                confirmLabel: "Finalizar",
+                pendingLabel: "Finalizando...",
               },
             )
           }
@@ -236,6 +274,24 @@ export function PriestActions({
           Este confessionário está offline. Peça à equipe para ativá-lo.
         </p>
       ) : null}
+
+      <ConfirmDialog
+        open={confirm !== null}
+        onOpenChange={(open) => {
+          if (!open && !pending) setConfirm(null);
+        }}
+        title={confirm?.title ?? ""}
+        description={confirm?.description ?? ""}
+        confirmLabel={confirm?.confirmLabel ?? "Confirmar"}
+        pendingLabel={confirm?.pendingLabel}
+        pending={pending}
+        touch
+        onConfirm={() => {
+          if (!confirm) return;
+          const next = confirm;
+          execute(next.actionKey, next.successLabel, next.action);
+        }}
+      />
     </div>
   );
 }

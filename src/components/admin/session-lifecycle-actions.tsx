@@ -11,6 +11,7 @@ import {
 } from "@/app/admin/actions";
 import { useInFlightLock } from "@/hooks/use-in-flight-lock";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Switch } from "@/components/ui/switch";
 import { Loader2Icon } from "lucide-react";
 import type { Database } from "@/types/database";
@@ -32,6 +33,9 @@ export function SessionLifecycleActions({
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [, startTransition] = useTransition();
   const [tvOverride, setTvOverride] = useState<boolean | null>(null);
+  const [forceFinishMessage, setForceFinishMessage] = useState<string | null>(
+    null,
+  );
   const lock = useInFlightLock();
   const busy = pendingAction !== null;
   const tvEnabled = tvOverride ?? showWaitingQueueOnTv;
@@ -52,6 +56,34 @@ export function SessionLifecycleActions({
           return;
         }
         toast.success(result.message ?? successFallback);
+      } finally {
+        setPendingAction(null);
+        lock.release();
+      }
+    });
+  }
+
+  function finishSession(force: boolean) {
+    if (!lock.tryAcquire()) return;
+
+    setPendingAction("finish");
+    startTransition(async () => {
+      try {
+        const result = await finishSessionAction(sessionId, force);
+        if (
+          !force &&
+          !result.ok &&
+          result.message?.includes("senha")
+        ) {
+          setForceFinishMessage(result.message);
+          return;
+        }
+        if (!result.ok) {
+          toast.error(result.message ?? "Não foi possível concluir a ação.");
+          return;
+        }
+        setForceFinishMessage(null);
+        toast.success(result.message ?? "Sessão encerrada.");
       } finally {
         setPendingAction(null);
         lock.release();
@@ -101,29 +133,13 @@ export function SessionLifecycleActions({
             <Button
               size="lg"
               variant="danger-ghost"
-              loading={pendingAction === "finish"}
-              disabled={busy}
-              onClick={() =>
-                run(
-                  "finish",
-                  async () => {
-                    const first = await finishSessionAction(sessionId, false);
-                    if (
-                      !first.ok &&
-                      first.message?.includes("senha") &&
-                      window.confirm(
-                        `${first.message}\n\nDeseja encerrar mesmo assim?`,
-                      )
-                    ) {
-                      return finishSessionAction(sessionId, true);
-                    }
-                    return first;
-                  },
-                  "Sessão encerrada.",
-                )
-              }
+              loading={pendingAction === "finish" && !forceFinishMessage}
+              disabled={busy && !forceFinishMessage}
+              onClick={() => finishSession(false)}
             >
-              {pendingAction === "finish" ? "Finalizando..." : "Encerrar sessão"}
+              {pendingAction === "finish" && !forceFinishMessage
+                ? "Finalizando..."
+                : "Encerrar sessão"}
             </Button>
           ) : null}
         </div>
@@ -180,6 +196,20 @@ export function SessionLifecycleActions({
           )}
         </div>
       ) : null}
+
+      <ConfirmDialog
+        open={forceFinishMessage !== null}
+        onOpenChange={(open) => {
+          if (!open) setForceFinishMessage(null);
+        }}
+        title="Encerrar sessão?"
+        description={`${(forceFinishMessage ?? "").replace(/\s*Confirme para forçar o encerramento\.?/, "").trim()} As pessoas que ainda aguardam deixam de ser chamadas.`}
+        cancelLabel="Cancelar"
+        confirmLabel="Encerrar mesmo assim"
+        pendingLabel="Encerrando..."
+        pending={pendingAction === "finish"}
+        onConfirm={() => finishSession(true)}
+      />
     </div>
   );
 }
