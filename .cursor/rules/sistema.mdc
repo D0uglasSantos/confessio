@@ -9,7 +9,7 @@ Fonte: `docs/diretrizes`. Spec: `docs/DATABASE.md`.
 
 ## Produto
 
-Confessio — fila, senhas e confessionários. Fiel sem conta. Nome, CPF e e-mail não são coletados. Telefone é opcional, só em `ticket_contacts`, para aviso de chamada no WhatsApp. Uma fila por sessão; o fiel não escolhe o padre. Auth só em `/admin`. Nunca armazenar conteúdo da confissão.
+Confessio — fila, senhas e confessionários. Fiel sem conta. Nome, CPF e e-mail não são coletados. Telefone é opcional, só em `ticket_contacts`, para aviso de chamada no WhatsApp. Uma fila por sessão; o fiel não escolhe o padre. Auth só em `/admin`. `ends_at` encerra a entrada; quem já está na fila continua até ser atendido ou o admin finalizar. Nunca armazenar conteúdo da confissão.
 
 ## Privacidade
 

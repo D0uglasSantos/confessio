@@ -11,6 +11,7 @@ import {
 } from "@/app/admin/actions";
 import { useInFlightLock } from "@/hooks/use-in-flight-lock";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { Loader2Icon } from "lucide-react";
 import type { Database } from "@/types/database";
 
@@ -99,7 +100,7 @@ export function SessionLifecycleActions({
           {status === "OPEN" || status === "ENTRY_CLOSED" ? (
             <Button
               size="lg"
-              variant="outline"
+              variant="danger-ghost"
               loading={pendingAction === "finish"}
               disabled={busy}
               onClick={() =>
@@ -129,60 +130,55 @@ export function SessionLifecycleActions({
       ) : null}
 
       {showTv ? (
-        <label className="flex items-start gap-3 rounded-xl border border-border/80 bg-card px-3 py-3 text-sm">
-          <input
-            type="checkbox"
-            className="mt-0.5 size-4 rounded border-input"
-            checked={tvEnabled}
-            disabled={busy}
-            onChange={(event) => {
-              const next = event.target.checked;
-              const previous = tvEnabled;
-              setTvOverride(next);
-
-              if (!lock.tryAcquire()) {
-                setTvOverride(previous);
-                return;
-              }
-
-              setPendingAction("tv");
-              startTransition(async () => {
-                try {
-                  const result = await toggleWaitingQueueOnTvAction(
-                    sessionId,
-                    next,
-                  );
-                  if (!result.ok) {
-                    setTvOverride(previous);
-                    toast.error(
-                      result.message ?? "Não foi possível atualizar a TV.",
-                    );
-                    return;
-                  }
-                  toast.success(
-                    result.message ?? "Preferência da TV atualizada.",
-                  );
-                } finally {
-                  setPendingAction(null);
-                  lock.release();
-                }
-              });
-            }}
-          />
+        <div className="flex items-start justify-between gap-3 py-1">
+          <div className="min-w-0">
+            <p className="text-sm font-medium">Exibir próximas senhas na TV</p>
+            <p className="text-muted-foreground text-xs">
+              {pendingAction === "tv" ? "Salvando..." : "Salva automaticamente"}
+            </p>
+          </div>
           {pendingAction === "tv" ? (
-            <span className="inline-flex items-center gap-2">
-              <Loader2Icon className="size-3.5 animate-spin" aria-hidden="true" />
-              Salvando...
-            </span>
+            <Loader2Icon className="text-muted-foreground mt-1 size-4 animate-spin" aria-hidden="true" />
           ) : (
-            <span className="flex flex-col gap-0.5">
-              <span>Exibir próximas senhas na TV</span>
-              <span className="text-muted-foreground text-xs">
-                Salva automaticamente.
-              </span>
-            </span>
+            <Switch
+              checked={tvEnabled}
+              disabled={busy}
+              aria-label="Exibir próximas senhas na TV"
+              onCheckedChange={(next) => {
+                const previous = tvEnabled;
+                setTvOverride(next);
+
+                if (!lock.tryAcquire()) {
+                  setTvOverride(previous);
+                  return;
+                }
+
+                setPendingAction("tv");
+                startTransition(async () => {
+                  try {
+                    const result = await toggleWaitingQueueOnTvAction(
+                      sessionId,
+                      next,
+                    );
+                    if (!result.ok) {
+                      setTvOverride(previous);
+                      toast.error(
+                        result.message ?? "Não foi possível atualizar a TV.",
+                      );
+                      return;
+                    }
+                    toast.success(
+                      result.message ?? "Preferência da TV atualizada.",
+                    );
+                  } finally {
+                    setPendingAction(null);
+                    lock.release();
+                  }
+                });
+              }}
+            />
           )}
-        </label>
+        </div>
       ) : null}
     </div>
   );

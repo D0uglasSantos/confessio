@@ -17,7 +17,7 @@ import {
 import { startNavigationProgress } from "@/components/navigation-progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { formatAdminDate, formatCount, formatCounted } from "@/lib/admin/format";
 import type { GlobalChurchSummary } from "@/lib/admin/global-metrics";
@@ -79,62 +79,62 @@ export function ChurchDirectory({
 
   return (
     <div className="space-y-4">
-      <div className="relative w-full max-w-md">
-        <SearchIcon className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
-        <Input
-          value={query}
-          onChange={(event) => {
-            setQuery(event.target.value);
-            setPage(1);
-          }}
-          placeholder="Buscar por nome ou slug"
-          className="pl-8"
-          aria-label="Buscar paróquia"
-        />
-      </div>
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="relative w-full max-w-md">
+          <SearchIcon className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
+          <Input
+            value={query}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setPage(1);
+            }}
+            placeholder="Buscar por nome ou slug"
+            className="pl-8"
+            aria-label="Buscar paróquia"
+          />
+        </div>
 
-      <div className="flex flex-wrap gap-1.5">
-        {churchDirectoryFilters.map((item) => {
-          const count = countChurchesByFilter(churches, item.id);
-          const selected = filter === item.id;
+        <div
+          className="bg-secondary/80 inline-flex flex-wrap items-center gap-0.5 rounded-xl p-1"
+          role="tablist"
+          aria-label="Filtrar paróquias"
+        >
+          {churchDirectoryFilters.map((item) => {
+            const count = countChurchesByFilter(churches, item.id);
+            const selected = filter === item.id;
 
-          return (
-            <Button
-              key={item.id}
-              type="button"
-              size="sm"
-              variant={selected ? "default" : "outline"}
-              aria-pressed={selected}
-              onClick={() => setFilter(item.id)}
-            >
-              {item.label}
-              <span className="tabular-nums opacity-80">{count}</span>
-            </Button>
-          );
-        })}
+            return (
+              <Button
+                key={item.id}
+                type="button"
+                size="sm"
+                variant={selected ? "secondary" : "ghost"}
+                className={selected ? "bg-card shadow-none" : "border-transparent"}
+                aria-pressed={selected}
+                onClick={() => setFilter(item.id)}
+              >
+                {item.label}
+                <span className="text-muted-foreground tabular-nums">{count}</span>
+              </Button>
+            );
+          })}
+        </div>
       </div>
 
       {churches.length === 0 ? (
-        <Card>
-          <CardContent className="py-10 text-center">
-            <p className="text-sm font-medium">Nenhuma paróquia cadastrada</p>
-            <p className="text-muted-foreground mt-1 text-sm">
-              Use Nova paróquia para cadastrar a primeira e começar a operar a
-              plataforma.
-            </p>
-          </CardContent>
-        </Card>
+        <EmptyState
+          title="Nenhuma paróquia cadastrada"
+          description="Use Nova paróquia para cadastrar a primeira e começar a operar a plataforma."
+        />
       ) : filtered.length === 0 ? (
-        <Card>
-          <CardContent className="text-muted-foreground py-10 text-center text-sm">
-            Nenhuma paróquia encontrada nesta busca ou filtro.
-          </CardContent>
-        </Card>
+        <EmptyState
+          title="Nada encontrado"
+          description="Nenhuma paróquia corresponde a esta busca ou filtro."
+        />
       ) : (
-        <Card>
-          <CardContent className="overflow-x-auto p-0">
+        <div className="overflow-x-auto">
             <table className="w-full min-w-[52rem] text-left text-sm">
-              <thead className="bg-muted/40 text-muted-foreground border-b text-xs tracking-wide uppercase">
+              <thead className="text-muted-foreground border-b text-[11px] tracking-[0.08em] uppercase">
                 <tr>
                   <th scope="col" className="px-4 py-3 font-medium">
                     Paróquia
@@ -160,7 +160,7 @@ export function ChurchDirectory({
                 {pageItems.map((church) => (
                   <tr
                     key={church.id}
-                    className="hover:bg-muted/30 relative border-b last:border-0"
+                    className="hover:bg-primary/4 relative border-b border-border/70 last:border-0"
                   >
                     <td className="px-4 py-3">
                       <Link
@@ -189,14 +189,14 @@ export function ChurchDirectory({
                     </td>
                     <td className="px-4 py-3">
                       {church.is_active ? (
-                        <Badge>Ativa</Badge>
+                        <Badge variant="success">Ativa</Badge>
                       ) : (
                         <Badge variant="outline">Desativada</Badge>
                       )}
                     </td>
                     <td className="px-4 py-3">
                       {church.sessions_open_now > 0 ? (
-                        <Badge>Fila ativa</Badge>
+                        <Badge variant="success">Fila ativa</Badge>
                       ) : church.sessions_total > 0 ? (
                         <Badge variant="outline">Já usou</Badge>
                       ) : (
@@ -221,7 +221,7 @@ export function ChurchDirectory({
                         {formatCount(church.admins_count)}
                       </span>
                       {church.admins_count === 0 ? (
-                        <p className="text-xs text-amber-800">Sem vínculo</p>
+                        <p className="text-warning text-xs">Sem vínculo</p>
                       ) : (
                         <p className="text-muted-foreground mt-1 max-w-[12rem] truncate text-xs">
                           {church.admin_emails.join(", ")}
@@ -240,8 +240,7 @@ export function ChurchDirectory({
                 ))}
               </tbody>
             </table>
-          </CardContent>
-        </Card>
+        </div>
       )}
 
       {filtered.length > PAGE_SIZE ? (

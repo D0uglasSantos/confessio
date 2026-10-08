@@ -61,6 +61,11 @@ DECLARE
   v_list jsonb;
   v_metrics jsonb;
   v_new_church uuid;
+  v_ended_session uuid;
+  v_ended_station uuid;
+  v_ended_token uuid;
+  v_ended_ticket public.fiel_ticket;
+  v_called_ended public.tickets;
   v_err text;
 BEGIN
   -- Isolamento: sessão CANCELLED de outra paróquia não aparece;
@@ -402,6 +407,114 @@ BEGIN
         RAISE EXCEPTION 'expected QUEUE_EMPTY, got %', v_err;
       END IF;
   END;
+
+  -- ends_at encerra entrada, mas quem já está na fila continua
+  INSERT INTO public.sessions (
+    church_id, name, slug, status, ticket_prefix, starts_at, ends_at, entry_opened_at
+  )
+  VALUES (
+    v_church_id,
+    'Sessão fim de entrada',
+    'END5A1',
+    'OPEN',
+    'E',
+    now() - interval '1 hour',
+    now() + interval '1 hour',
+    now() - interval '1 hour'
+  )
+  RETURNING id INTO v_ended_session;
+
+  INSERT INTO public.stations (session_id, name, priest_name, status)
+  VALUES (v_ended_session, 'Confessionário fim', 'Pe. Fim', 'AVAILABLE')
+  RETURNING id INTO v_ended_station;
+
+  SELECT access_token
+  INTO v_ended_token
+  FROM public.station_access
+  WHERE station_id = v_ended_station;
+
+  v_ended_ticket := public.create_ticket(v_ended_session, NULL);
+  PERFORM pg_temp.assert(v_ended_ticket.id IS NOT NULL, 'ticket before ends_at was not created');
+
+  UPDATE public.sessions
+  SET ends_at = now() - interval '1 minute'
+  WHERE id = v_ended_session;
+
+  BEGIN
+    PERFORM public.create_ticket(v_ended_session, NULL);
+    RAISE EXCEPTION 'create_ticket after ends_at must fail';
+  EXCEPTION
+    WHEN OTHERS THEN
+      v_err := SQLERRM;
+      IF v_err LIKE '%create_ticket after ends_at must fail%' THEN
+        RAISE;
+      END IF;
+      IF v_err NOT LIKE '%SESSION_NOT_OPEN%' THEN
+        RAISE EXCEPTION 'expected SESSION_NOT_OPEN after ends_at, got %', v_err;
+      END IF;
+  END;
+
+  PERFORM pg_temp.assert(
+    (
+      SELECT status = 'ENTRY_CLOSED' AND entry_closed_at IS NOT NULL
+      FROM public.sessions
+      WHERE id = v_ended_session
+    ),
+    'ends_at did not persist ENTRY_CLOSED'
+  );
+  PERFORM pg_temp.assert(
+    (public.create_ticket(v_ended_session, v_ended_ticket.anonymous_token)).id = v_ended_ticket.id,
+    'existing ticket must be recoverable after scheduled entry close'
+  );
+
+  v_called_ended := public.call_next_ticket(v_ended_station, v_ended_token);
+  PERFORM pg_temp.assert(
+    v_called_ended.id = v_ended_ticket.id AND v_called_ended.status = 'CALLED',
+    'priest must keep calling tickets after scheduled entry close'
+  );
+
+  PERFORM pg_temp.set_auth(v_local_admin);
+  BEGIN
+    PERFORM public.admin_issue_paper_tickets(v_ended_session, 50);
+    RAISE EXCEPTION 'paper tickets after ends_at must fail';
+  EXCEPTION
+    WHEN OTHERS THEN
+      v_err := SQLERRM;
+      IF v_err LIKE '%paper tickets after ends_at must fail%' THEN
+        RAISE;
+      END IF;
+      IF v_err NOT LIKE '%SESSION_NOT_OPEN%' THEN
+        RAISE EXCEPTION 'expected SESSION_NOT_OPEN on paper tickets after ends_at, got %', v_err;
+      END IF;
+  END;
+
+  INSERT INTO public.sessions (
+    church_id, name, slug, status, ticket_prefix, starts_at, ends_at, entry_opened_at
+  )
+  VALUES (
+    v_church_id,
+    'Sessão leitura encerra entrada',
+    'END5A2',
+    'OPEN',
+    'R',
+    now() - interval '1 hour',
+    now() - interval '1 minute',
+    now() - interval '1 hour'
+  );
+
+  v_public := public.get_public_session_state('END5A2');
+  PERFORM pg_temp.assert(
+    v_public #>> '{session,status}' = 'ENTRY_CLOSED',
+    'public session state did not close entry at ends_at'
+  );
+  PERFORM pg_temp.assert(
+    (
+      SELECT status = 'ENTRY_CLOSED'
+      FROM public.sessions
+      WHERE slug = 'END5A2'
+    ),
+    'get_public_session_state did not persist ENTRY_CLOSED'
+  );
 
   RAISE NOTICE 'MVP-01 regression passed';
 END $$;

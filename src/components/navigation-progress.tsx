@@ -1,6 +1,5 @@
 "use client";
 
-import { Loader2Icon } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
@@ -153,14 +152,10 @@ export function NavigationProgress() {
       <div
         role="progressbar"
         aria-valuetext="Carregando"
-        className="fixed inset-x-0 top-0 z-80 h-1 overflow-hidden bg-primary/15"
+        className="fixed inset-x-0 top-0 z-80 h-0.5 overflow-hidden bg-primary/10"
       >
-        <div className="nav-progress-bar bg-brand-gold h-full w-1/3" />
+        <div className="nav-progress-bar bg-primary h-full w-1/3" />
       </div>
-      <p className="bg-primary text-primary-foreground fixed top-3 left-1/2 z-80 flex -translate-x-1/2 items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium shadow-lg">
-        <Loader2Icon className="size-4 animate-spin" aria-hidden="true" />
-        Carregando
-      </p>
     </div>
   );
 }

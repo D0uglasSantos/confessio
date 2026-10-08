@@ -2,7 +2,6 @@ import Link from "next/link";
 import {
   ArrowRight,
   Building2,
-  CircleCheck,
   LayoutDashboard,
   LockKeyhole,
   QrCode,
@@ -91,26 +90,25 @@ export default function HomePage() {
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-4">
               <Link
-                href="/admin/login"
+                href="/contato"
                 className={buttonVariants({ size: "lg" })}
               >
-                Entrar na administração
+                Quero levar para minha paróquia
                 <ArrowRight aria-hidden="true" />
               </Link>
               <Link
-                href="/contato"
+                href="/admin/login"
                 className={buttonVariants({ variant: "outline", size: "lg" })}
               >
-                Quero levar para minha paróquia
+                Entrar na administração
               </Link>
             </div>
-            <p className="text-muted-foreground mt-4 inline-flex items-center gap-2 text-sm">
-              <CircleCheck className="text-brand-sage size-4" />
-              Fiel e sacerdote não criam conta
+            <p className="text-muted-foreground mt-4 text-sm">
+              Fiel e sacerdote não criam conta.
             </p>
           </div>
 
-          <div className="brand-panel ring-primary/15 rounded-[2rem] p-5 shadow-[0_36px_80px_-54px_rgba(54,33,62,0.75)] ring-1 sm:p-8">
+          <div className="relative overflow-hidden rounded-[1.5rem] bg-card p-5 ring-1 ring-foreground/8 sm:p-8">
             <div className="relative z-10">
               <div className="flex items-center justify-between gap-4">
                 <div>
@@ -125,7 +123,7 @@ export default function HomePage() {
                 </span>
               </div>
 
-              <div className="bg-primary text-primary-foreground shadow-primary/15 mt-8 rounded-3xl px-6 py-8 text-center shadow-xl">
+              <div className="bg-primary text-primary-foreground mt-8 rounded-2xl px-6 py-8 text-center">
                 <p className="text-primary-foreground/70 text-sm">
                   Dirija-se ao Confessionário 2
                 </p>
@@ -138,17 +136,21 @@ export default function HomePage() {
               </div>
 
               <div className="mt-4 grid grid-cols-2 gap-4">
-                <div className="bg-muted/75 rounded-2xl p-4">
-                  <p className="text-muted-foreground text-xs font-medium">
-                    12 aguardando
+                <div className="p-1">
+                  <p className="font-heading text-3xl font-semibold tabular-nums">
+                    12
                   </p>
-                  <p className="font-heading mt-1 text-3xl font-semibold">12</p>
+                  <p className="text-muted-foreground mt-1 text-xs font-medium tracking-[0.08em] uppercase">
+                    aguardando
+                  </p>
                 </div>
-                <div className="bg-muted/75 rounded-2xl p-4">
-                  <p className="text-muted-foreground text-xs font-medium">
-                    3 confessionários
+                <div className="p-1">
+                  <p className="font-heading text-3xl font-semibold tabular-nums">
+                    3
                   </p>
-                  <p className="font-heading mt-1 text-3xl font-semibold">3</p>
+                  <p className="text-muted-foreground mt-1 text-xs font-medium tracking-[0.08em] uppercase">
+                    confessionários
+                  </p>
                 </div>
               </div>
             </div>
@@ -183,24 +185,21 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
+          <div className="mt-10 grid gap-8 md:grid-cols-3 md:gap-10">
             {arrivalPoints.map(
               ({ number, icon: Icon, audience, title, description }) => (
-                <article
-                  key={title}
-                  className="brand-panel ring-foreground/10 rounded-2xl p-6 ring-1"
-                >
-                  <div className="relative z-10 flex items-center justify-between">
-                    <span className="font-heading text-primary text-sm font-semibold">
-                      {number}
-                    </span>
-                    <Icon className="text-primary size-5" />
-                  </div>
-                  <p className="brand-kicker relative z-10 mt-10">{audience}</p>
-                  <h3 className="font-heading relative z-10 mt-2 text-2xl font-semibold">
+                <article key={title} className="min-w-0">
+                  <p className="font-heading text-primary/40 text-4xl leading-none">
+                    {number}
+                  </p>
+                  <p className="brand-kicker mt-6 inline-flex items-center gap-2">
+                    <Icon className="size-4" />
+                    {audience}
+                  </p>
+                  <h3 className="font-heading mt-2 text-2xl font-semibold">
                     {title}
                   </h3>
-                  <p className="text-muted-foreground relative z-10 mt-3 text-sm leading-6">
+                  <p className="text-muted-foreground mt-3 text-sm leading-6">
                     {description}
                   </p>
                 </article>

@@ -109,7 +109,7 @@ export function CreateSessionForm({
   return (
     <form
       action={formAction}
-      className="space-y-5"
+      className="grid items-start gap-10 xl:grid-cols-[minmax(0,1fr)_20rem]"
       onSubmit={(event) => {
         const prefixOk = validatePrefix(prefix);
         const rangeOk = validateRange(startsAt, endsAt);
@@ -123,6 +123,7 @@ export function CreateSessionForm({
     >
       <input type="hidden" name="stationsJson" value={stationsJson} />
 
+      <div className="space-y-8">
       {state && !state.ok ? (
         <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
           {state.message}
@@ -138,29 +139,6 @@ export function CreateSessionForm({
             placeholder="Confissões Domingo 18h"
             required
           />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="ticketPrefix">Prefixo da senha</Label>
-          <Input
-            id="ticketPrefix"
-            name="ticketPrefix"
-            value={prefix}
-            maxLength={4}
-            aria-invalid={prefixError ? true : undefined}
-            onChange={(event) => {
-              const value = event.target.value.toUpperCase();
-              setPrefix(value);
-              validatePrefix(value);
-            }}
-            required
-          />
-          <p className="text-muted-foreground text-xs">
-            As senhas serão {prefixPreview(prefix)}…
-          </p>
-          {prefixError ? (
-            <p className="text-destructive text-xs">{prefixError}</p>
-          ) : null}
         </div>
 
         <div className="space-y-2">
@@ -196,13 +174,34 @@ export function CreateSessionForm({
             }}
             required
           />
-          {rangeError ? (
-            <p className="text-destructive text-xs">{rangeError}</p>
+          <p className="text-destructive min-h-4 text-xs">{rangeError}</p>
+        </div>
+
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="ticketPrefix">Prefixo da senha</Label>
+          <Input
+            id="ticketPrefix"
+            name="ticketPrefix"
+            value={prefix}
+            maxLength={4}
+            aria-invalid={prefixError ? true : undefined}
+            onChange={(event) => {
+              const value = event.target.value.toUpperCase();
+              setPrefix(value);
+              validatePrefix(value);
+            }}
+            required
+          />
+          <p className="text-muted-foreground min-h-4 text-xs">
+            As senhas serão {prefixPreview(prefix)}…
+          </p>
+          {prefixError ? (
+            <p className="text-destructive text-xs">{prefixError}</p>
           ) : null}
         </div>
       </div>
 
-      <details className="rounded-xl border border-border/80 bg-card p-4">
+      <details className="border-border/70 border-t pt-4">
         <summary className="cursor-pointer text-sm font-medium">
           Opções avançadas
         </summary>
@@ -233,7 +232,7 @@ export function CreateSessionForm({
 
       <div className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <Label>Confessionários desta sessão</Label>
+          <h2 className="font-heading text-lg">Confessionários</h2>
           <div className="flex flex-wrap gap-2">
             {lastStations.length > 0 ? (
               <Button
@@ -247,7 +246,7 @@ export function CreateSessionForm({
             ) : null}
             <Button
               type="button"
-              variant="outline"
+              variant="secondary"
               size="sm"
               onClick={() =>
                 setStations((current) => [
@@ -270,11 +269,11 @@ export function CreateSessionForm({
           </p>
         ) : null}
 
-        <div className="space-y-3">
+        <div className="divide-y divide-border/70">
           {stations.map((station, index) => (
             <div
               key={`station-${index}`}
-              className="grid gap-2 rounded-xl border border-border/80 bg-card p-3 sm:grid-cols-[1fr_1fr_auto]"
+              className="grid gap-2 py-3 sm:grid-cols-[1fr_1fr_auto]"
             >
               <Input
                 aria-label={`Nome do confessionário ${index + 1}`}
@@ -315,10 +314,20 @@ export function CreateSessionForm({
           ))}
         </div>
       </div>
+      </div>
 
-      <Button type="submit" size="lg" loading={pending || !!state?.ok}>
-        {state?.ok ? "Abrindo sessão..." : pending ? "Criando..." : "Criar sessão"}
-      </Button>
+      <aside className="border-border/70 xl:sticky xl:top-6 space-y-4 border-t pt-6 xl:border-t-0 xl:border-l xl:pt-0 xl:pl-8">
+        <p className="overline-label">Resumo</p>
+        <p className="font-heading text-lg leading-snug">
+          As senhas serão {prefixPreview(prefix)}…
+        </p>
+        <p className="text-muted-foreground text-sm">
+          {stations.length} confessionário{stations.length === 1 ? "" : "s"}
+        </p>
+        <Button type="submit" size="lg" className="w-full" loading={pending || !!state?.ok}>
+          {state?.ok ? "Abrindo sessão..." : pending ? "Criando..." : "Criar sessão"}
+        </Button>
+      </aside>
     </form>
   );
 }

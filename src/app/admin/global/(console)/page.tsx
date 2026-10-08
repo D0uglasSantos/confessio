@@ -51,17 +51,13 @@ export default async function AdminGlobalOverviewPage() {
         <GlobalMetricsGrid metrics={metrics} churches={churches} />
       ) : null}
 
-      <section className="grid gap-4 lg:grid-cols-5">
-        <div className="lg:col-span-3">
-          <PlatformAttention churches={churches} />
-        </div>
-        <div className="lg:col-span-2">
-          <AuditLogList
-            entries={parseAuditLog(auditRaw)}
-            loadError={Boolean(auditError)}
-            showViewAll
-          />
-        </div>
+      <section className="grid items-start gap-10 lg:grid-cols-[minmax(0,1.4fr)_minmax(16rem,1fr)]">
+        <PlatformAttention churches={churches} />
+        <AuditLogList
+          entries={parseAuditLog(auditRaw)}
+          loadError={Boolean(auditError)}
+          showViewAll
+        />
       </section>
     </>
   );

@@ -17,7 +17,7 @@ import {
 import { SessionStatusBadge } from "@/components/admin/parish/session-status-badge";
 import { startNavigationProgress } from "@/components/navigation-progress";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { isPastInBrazil } from "@/lib/admin/datetime";
 import { formatAdminDateTime, formatCounted } from "@/lib/admin/format";
@@ -88,89 +88,89 @@ export function SessionDirectory({
 
   return (
     <div className="space-y-4">
-      <div className="relative w-full max-w-md">
-        <SearchIcon className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
-        <Input
-          value={query}
-          onChange={(event) => {
-            setQuery(event.target.value);
-            setPage(1);
-          }}
-          placeholder="Buscar sessão"
-          className="pl-8"
-          aria-label="Buscar sessão"
-        />
-      </div>
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="relative w-full max-w-md">
+          <SearchIcon className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
+          <Input
+            value={query}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setPage(1);
+            }}
+            placeholder="Buscar sessão"
+            className="pl-8"
+            aria-label="Buscar sessão"
+          />
+        </div>
 
-      <div className="flex flex-wrap gap-1.5">
-        {sessionDirectoryFilters.map((item) => {
-          const count = countSessionsByFilter(sessions, item.id);
-          const selected = filter === item.id;
+        <div
+          className="bg-secondary/80 inline-flex flex-wrap items-center gap-0.5 rounded-xl p-1"
+          role="tablist"
+          aria-label="Filtrar por status"
+        >
+          {sessionDirectoryFilters.map((item) => {
+            const count = countSessionsByFilter(sessions, item.id);
+            const selected = filter === item.id;
 
-          return (
-            <Button
-              key={item.id}
-              type="button"
-              size="sm"
-              variant={selected ? "default" : "outline"}
-              aria-pressed={selected}
-              onClick={() => setFilter(item.id)}
-            >
-              {item.label}
-              <span className="tabular-nums opacity-80">{count}</span>
-            </Button>
-          );
-        })}
+            return (
+              <Button
+                key={item.id}
+                type="button"
+                size="sm"
+                variant={selected ? "secondary" : "ghost"}
+                className={selected ? "bg-card shadow-none" : "border-transparent"}
+                aria-pressed={selected}
+                onClick={() => setFilter(item.id)}
+              >
+                {item.label}
+                <span className="text-muted-foreground tabular-nums">{count}</span>
+              </Button>
+            );
+          })}
+        </div>
       </div>
 
       {sessions.length === 0 ? (
-        <Card>
-          <CardContent className="py-10 text-center">
-            <p className="text-sm font-medium">Nenhuma sessão criada</p>
-            <p className="text-muted-foreground mt-1 text-sm">
-              Crie a primeira sessão para abrir a fila de confissões.
-            </p>
-            {canCreate ? (
-              <Link
-                href="/admin/sessoes/nova"
-                className={buttonVariants({ className: "mt-4" })}
-              >
+        <EmptyState
+          title="Nenhuma sessão criada"
+          description="Crie a primeira sessão para abrir a fila de confissões."
+          action={
+            canCreate ? (
+              <Link href="/admin/sessoes/nova" className={buttonVariants()}>
                 Nova sessão
               </Link>
-            ) : null}
-          </CardContent>
-        </Card>
+            ) : undefined
+          }
+        />
       ) : filtered.length === 0 ? (
-        <Card>
-          <CardContent className="text-muted-foreground py-10 text-center text-sm">
-            Nenhuma sessão encontrada nesta busca ou filtro.
-          </CardContent>
-        </Card>
+        <EmptyState
+          title="Nada encontrado"
+          description="Nenhuma sessão corresponde a esta busca ou filtro."
+        />
       ) : (
-        <Card>
-          <CardContent className="overflow-x-auto p-0">
+        <div className="overflow-x-auto">
             <table className="w-full min-w-[56rem] text-left text-sm">
-              <thead className="bg-muted/40 text-muted-foreground border-b text-xs tracking-wide uppercase">
+              <thead className="text-muted-foreground border-b text-[11px] tracking-[0.08em] uppercase">
                 <tr>
-                  <th scope="col" className="px-4 py-3 font-medium">
+                  <th scope="col" className="px-3 py-3 font-medium">
                     Sessão
                   </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
+                  <th scope="col" className="px-3 py-3 font-medium">
                     Status
                   </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
+                  <th scope="col" className="px-3 py-3 font-medium">
                     Início
                   </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
+                  <th scope="col" className="px-3 py-3 text-right font-medium">
                     Emitidas
                   </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
+                  <th scope="col" className="px-3 py-3 text-right font-medium">
                     Atendidas
                   </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
+                  <th scope="col" className="px-3 py-3 text-right font-medium">
                     Duração
                   </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
+                  <th scope="col" className="px-3 py-3 text-right font-medium">
                     Ação
                   </th>
                 </tr>
@@ -184,9 +184,9 @@ export function SessionDirectory({
                   return (
                     <tr
                       key={session.id}
-                      className="hover:bg-muted/30 relative border-b last:border-0"
+                      className="hover:bg-primary/4 group relative border-b border-border/70 last:border-0"
                     >
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-3.5">
                         <Link
                           href={`/admin/sessoes/${session.id}`}
                           className="after:absolute after:inset-0 font-medium focus-visible:ring-ring/50 rounded-sm focus-visible:ring-3 focus-visible:outline-none"
@@ -194,34 +194,34 @@ export function SessionDirectory({
                           {session.name}
                         </Link>
                         {pastDraft ? (
-                          <p className="text-amber-800 relative z-10 mt-1 text-xs">
+                          <p className="text-warning relative z-10 mt-1 text-xs">
                             Horário já passou
                           </p>
                         ) : null}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-3.5">
                         <SessionStatusBadge status={session.status} />
                       </td>
-                      <td className="text-muted-foreground px-4 py-3">
+                      <td className="text-muted-foreground px-3 py-3.5">
                         {session.starts_at
                           ? formatAdminDateTime(session.starts_at)
                           : "—"}
                       </td>
-                      <td className="px-4 py-3 tabular-nums">
+                      <td className="px-3 py-3.5 text-right tabular-nums">
                         {session.tickets_issued ?? 0}
                       </td>
-                      <td className="px-4 py-3 tabular-nums">
+                      <td className="px-3 py-3.5 text-right tabular-nums">
                         {session.tickets_completed ?? 0}
                       </td>
-                      <td className="text-muted-foreground px-4 py-3">
+                      <td className="text-muted-foreground px-3 py-3.5 text-right tabular-nums">
                         {duration == null ? "—" : formatDuration(duration)}
                       </td>
-                      <td className="relative z-10 px-4 py-3">
-                        <div className="flex flex-wrap gap-1.5">
+                      <td className="relative z-10 px-3 py-3.5">
+                        <div className="flex flex-wrap justify-end gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100">
                           <Link
                             href={`/admin/sessoes/${session.id}`}
                             className={buttonVariants({
-                              variant: "outline",
+                              variant: "secondary",
                               size: "sm",
                             })}
                           >
@@ -248,8 +248,7 @@ export function SessionDirectory({
                 })}
               </tbody>
             </table>
-          </CardContent>
-        </Card>
+        </div>
       )}
 
       {filtered.length > PAGE_SIZE ? (

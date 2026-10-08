@@ -2,6 +2,7 @@ import Link from "next/link";
 import { PlusIcon } from "lucide-react";
 
 import { ConsolePageHeader } from "@/components/admin/console-page-header";
+import { DuplicateSessionButton } from "@/components/admin/duplicate-session-button";
 import { ParishOverviewMetrics } from "@/components/admin/parish/overview-metrics";
 import { ParishShell } from "@/components/admin/parish/parish-shell";
 import {
@@ -10,15 +11,13 @@ import {
 } from "@/components/admin/parish/session-helpers";
 import { SessionStatusBadge } from "@/components/admin/parish/session-status-badge";
 import { buttonVariants } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { requireAdminChurch } from "@/lib/admin/church";
-import { formatAdminDateTime, formatAdminTime, formatCounted } from "@/lib/admin/format";
+import {
+  formatAdminDateTime,
+  formatAdminTime,
+  formatCounted,
+} from "@/lib/admin/format";
 import { isSameBrazilDay } from "@/lib/admin/datetime";
 
 export const dynamic = "force-dynamic";
@@ -62,136 +61,150 @@ export default async function AdminPage() {
         }
       />
 
+      <NowHero
+        live={stats.live}
+        drafts={stats.drafts}
+        canCreate={church.is_active}
+      />
+
       <ParishOverviewMetrics sessions={list} />
 
-      <section className="grid gap-4 lg:grid-cols-5">
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle>Em operação</CardTitle>
-            <CardDescription>
-              Sessões com fila aberta ou entrada já encerrada.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {stats.live.length === 0 ? (
-              <EmptyOperationNextStep
-                drafts={stats.drafts}
-                canCreate={church.is_active}
-              />
-            ) : (
-              <ul className="space-y-2">
-                {stats.live.map((session) => (
-                  <li key={session.id}>
-                    <Link
-                      href={`/admin/sessoes/${session.id}`}
-                      className="hover:bg-muted/70 flex items-center justify-between gap-3 rounded-lg px-2 py-2"
-                    >
-                      <div className="min-w-0">
-                        <p className="truncate font-medium">{session.name}</p>
-                        <p className="text-muted-foreground text-xs">
-                          /s/{session.slug}
-                          {session.starts_at
-                            ? ` · ${formatAdminDateTime(session.starts_at)}`
-                            : null}
-                        </p>
-                      </div>
-                      <SessionStatusBadge status={session.status} />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Sessões recentes</CardTitle>
-            <CardDescription>
-              As últimas criadas nesta paróquia.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {recent.length === 0 ? (
-              <p className="text-muted-foreground text-sm">
-                Nenhuma sessão ainda.
-              </p>
-            ) : (
-              <ul className="space-y-2">
-                {recent.map((session) => (
-                  <li key={session.id}>
-                    <Link
-                      href={`/admin/sessoes/${session.id}`}
-                      className="hover:bg-muted/70 flex items-center justify-between gap-3 rounded-lg px-2 py-2"
-                    >
-                      <span className="truncate text-sm font-medium">
-                        {session.name}
-                      </span>
-                      <SessionStatusBadge status={session.status} />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-            {list.length > 0 ? (
-              <Link
-                href="/admin/sessoes"
-                className="text-muted-foreground hover:text-foreground mt-3 inline-block text-sm underline-offset-4 hover:underline"
-              >
-                Ver todas as sessões
-              </Link>
-            ) : null}
-          </CardContent>
-        </Card>
+      <section className="space-y-3">
+        <div className="flex items-end justify-between gap-3">
+          <h2 className="font-heading text-xl">Sessões recentes</h2>
+          {list.length > 0 ? (
+            <Link
+              href="/admin/sessoes"
+              className="text-muted-foreground hover:text-foreground text-sm underline-offset-4 hover:underline"
+            >
+              Ver todas
+            </Link>
+          ) : null}
+        </div>
+        {recent.length === 0 ? (
+          <EmptyState
+            title="Nenhuma sessão ainda"
+            description="Crie a primeira sessão para abrir a fila de confissões."
+            action={
+              church.is_active ? (
+                <Link href="/admin/sessoes/nova" className={buttonVariants()}>
+                  Nova sessão
+                </Link>
+              ) : undefined
+            }
+          />
+        ) : (
+          <ul className="divide-y divide-border/70">
+            {recent.map((session) => (
+              <li key={session.id} className="group relative">
+                <Link
+                  href={`/admin/sessoes/${session.id}`}
+                  className="hover:bg-primary/4 flex items-center justify-between gap-3 rounded-xl px-2 py-3"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">{session.name}</p>
+                    <p className="text-muted-foreground text-xs">
+                      {session.starts_at
+                        ? formatAdminDateTime(session.starts_at)
+                        : `/s/${session.slug}`}
+                    </p>
+                  </div>
+                  <SessionStatusBadge status={session.status} />
+                </Link>
+                {church.is_active ? (
+                  <div className="absolute top-1/2 right-2 z-10 hidden -translate-y-1/2 group-hover:block group-focus-within:block">
+                    <DuplicateSessionButton sessionId={session.id} />
+                  </div>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </ParishShell>
   );
 }
 
-function EmptyOperationNextStep({
+function NowHero({
+  live,
   drafts,
   canCreate,
 }: {
+  live: ParishSessionSummary[];
   drafts: ParishSessionSummary[];
   canCreate: boolean;
 }) {
+  const featuredLive = live[0];
   const todaysDrafts = drafts.filter(
     (session) => session.starts_at && isSameBrazilDay(session.starts_at),
   );
-  const featured = todaysDrafts[0] ?? drafts[0];
+  const featuredDraft = todaysDrafts[0] ?? drafts[0];
 
-  if (featured?.starts_at) {
+  if (featuredLive) {
     return (
-      <div className="space-y-3">
-        <p className="text-sm">
-          Você tem{" "}
-          {formatCounted(todaysDrafts.length || 1, {
-            one: "rascunho",
-            other: "rascunhos",
-          })}
-          {todaysDrafts.length > 0 ? " para hoje" : ""} às{" "}
-          {formatAdminTime(featured.starts_at)}.
-        </p>
+      <section className="border-border/70 flex flex-wrap items-center justify-between gap-4 border-y py-5">
+        <div className="min-w-0">
+          <p className="overline-label">Agora</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <h2 className="font-heading truncate text-2xl">{featuredLive.name}</h2>
+            <SessionStatusBadge status={featuredLive.status} />
+          </div>
+          <p className="text-muted-foreground mt-1 text-sm">
+            {formatCounted(live.length, {
+              one: "fila em operação",
+              other: "filas em operação",
+            })}
+            {featuredLive.starts_at
+              ? ` · ${formatAdminDateTime(featuredLive.starts_at)}`
+              : null}
+          </p>
+        </div>
         <Link
-          href={`/admin/sessoes/${featured.id}`}
+          href={`/admin/sessoes/${featuredLive.id}`}
+          className={buttonVariants()}
+        >
+          Ir para a fila
+        </Link>
+      </section>
+    );
+  }
+
+  if (featuredDraft?.starts_at) {
+    return (
+      <section className="border-border/70 flex flex-wrap items-center justify-between gap-4 border-y py-5">
+        <div>
+          <p className="overline-label">Agora</p>
+          <h2 className="font-heading mt-2 text-2xl">
+            Rascunho para hoje às {formatAdminTime(featuredDraft.starts_at)}
+          </h2>
+          <p className="text-muted-foreground mt-1 text-sm">
+            {featuredDraft.name}
+          </p>
+        </div>
+        <Link
+          href={`/admin/sessoes/${featuredDraft.id}`}
           className={buttonVariants()}
         >
           Abrir sessão
         </Link>
-      </div>
+      </section>
     );
   }
 
   return (
-    <div className="space-y-3">
-      <p className="text-muted-foreground text-sm">
-        Nenhuma fila em andamento.
-      </p>
+    <section className="border-border/70 flex flex-wrap items-center justify-between gap-4 border-y py-5">
+      <div>
+        <p className="overline-label">Agora</p>
+        <h2 className="font-heading mt-2 text-2xl">Nenhuma fila em andamento</h2>
+        <p className="text-muted-foreground mt-1 text-sm">
+          Quando a equipe estiver pronta, crie ou abra uma sessão.
+        </p>
+      </div>
       {canCreate ? (
         <Link href="/admin/sessoes/nova" className={buttonVariants()}>
           Criar nova sessão
         </Link>
       ) : null}
-    </div>
+    </section>
   );
 }

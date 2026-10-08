@@ -1,13 +1,6 @@
 import { ConsolePageHeader } from "@/components/admin/console-page-header";
 import { CreateSessionForm } from "@/components/admin/create-session-form";
 import { ParishShell } from "@/components/admin/parish/parish-shell";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { requireAdminChurch } from "@/lib/admin/church";
 
 export const dynamic = "force-dynamic";
@@ -52,19 +45,12 @@ export default async function AdminNewSessionPage() {
       <ConsolePageHeader
         title="Nova sessão"
         description="A sessão nasce como rascunho. Depois você abre a fila quando a equipe estiver pronta."
+        breadcrumb={[
+          { href: "/admin/sessoes", label: "Sessões" },
+          { label: "Nova" },
+        ]}
       />
-      <Card>
-        <CardHeader>
-          <CardTitle>Cadastro</CardTitle>
-          <CardDescription>
-            Defina o horário, o prefixo das senhas e os confessionários desta
-            sessão.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <CreateSessionForm lastStations={lastStations} />
-        </CardContent>
-      </Card>
+      <CreateSessionForm lastStations={lastStations} />
     </ParishShell>
   );
 }

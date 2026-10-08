@@ -8,23 +8,17 @@ import { ParishShell } from "@/components/admin/parish/parish-shell";
 import { SessionStatusBadge } from "@/components/admin/parish/session-status-badge";
 import { PrintTicketBatchForm } from "@/components/admin/print-ticket-batch-form";
 import { QrCodeCard } from "@/components/admin/qr-code-card";
-import { RescheduleSessionForm } from "@/components/admin/reschedule-session-form";
+import { RescheduleSessionDialog } from "@/components/admin/reschedule-session-dialog";
+import { SessionDetailTabs } from "@/components/admin/session-detail-tabs";
 import { SessionLifecycleActions } from "@/components/admin/session-lifecycle-actions";
 import { SessionMetricsGrid } from "@/components/admin/session-metrics-grid";
 import { SessionPrepChecklist } from "@/components/admin/session-prep-checklist";
 import { SessionStationCard } from "@/components/admin/session-station-card";
+import { SessionTicketTable } from "@/components/admin/session-ticket-table";
 import { buttonVariants } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { requireAdminChurch } from "@/lib/admin/church";
 import { isPastInBrazil } from "@/lib/admin/datetime";
-import { formatAdminDayTime, formatAdminTime } from "@/lib/admin/format";
-import { ticketStatusLabel } from "@/lib/admin/labels";
+import { formatAdminDayTime } from "@/lib/admin/format";
 import { parseAdminSessionState } from "@/lib/admin/metrics";
 import { stationAccessToken } from "@/lib/admin/station-access";
 import {
@@ -99,76 +93,76 @@ export default async function AdminSessionPage({
   const live = session.status === "OPEN" || session.status === "ENTRY_CLOSED";
   const pastDraft =
     session.status === "DRAFT" && isPastInBrazil(session.starts_at);
+  const isDraft = session.status === "DRAFT";
 
-  const ticketTable = (
+  const queuePanel = (
     <section className="space-y-3">
       <div>
-        <h2 className="font-heading text-lg">Senhas</h2>
+        <h2 className="sr-only">Senhas</h2>
         <p className="text-muted-foreground text-sm">
           Por privacidade, nenhum dado do fiel é exibido.
         </p>
       </div>
-      <Card>
-        <CardContent className="overflow-x-auto p-0">
-          <table className="w-full min-w-[36rem] text-left text-sm">
-            <thead className="bg-muted/40 text-muted-foreground border-b text-xs tracking-wide uppercase">
-              <tr>
-                <th scope="col" className="px-4 py-3 font-medium">
-                  Senha
-                </th>
-                <th scope="col" className="px-4 py-3 font-medium">
-                  Status
-                </th>
-                <th scope="col" className="px-4 py-3 font-medium">
-                  Entrada
-                </th>
-                <th scope="col" className="px-4 py-3 font-medium">
-                  Chamada
-                </th>
-                <th scope="col" className="px-4 py-3 font-medium">
-                  Rechamadas
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {tickets.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={5}
-                    className="text-muted-foreground px-4 py-8 text-center"
-                  >
-                    Nenhuma senha nesta sessão ainda.
-                  </td>
-                </tr>
-              ) : (
-                tickets.map((ticket) => (
-                  <tr key={ticket.id} className="border-b last:border-0">
-                    <td className="px-4 py-3 font-medium">
-                      {ticket.public_code}
-                    </td>
-                    <td className="px-4 py-3">
-                      {ticketStatusLabel[ticket.status] ?? ticket.status}
-                    </td>
-                    <td className="text-muted-foreground px-4 py-3">
-                      {formatAdminTime(ticket.created_at)}
-                    </td>
-                    <td className="text-muted-foreground px-4 py-3">
-                      {ticket.called_at
-                        ? formatAdminTime(ticket.called_at)
-                        : "—"}
-                    </td>
-                    <td className="text-muted-foreground px-4 py-3">
-                      {ticket.recall_count}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </CardContent>
-      </Card>
+      <SessionTicketTable tickets={tickets} />
     </section>
   );
+
+  const stationsPanel = (
+    <section id="confessionarios" className="space-y-4">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <p className="text-muted-foreground text-sm">
+          Imprima o cartão e cole na mesa. O sacerdote entra pelo QR daquele
+          posto.
+        </p>
+        {hasPrintableStations ? (
+          <Link
+            href={`/admin/sessoes/${session.id}/imprimir/confessionarios`}
+            target="_blank"
+            rel="noreferrer"
+            className={buttonVariants({ variant: "secondary", size: "sm" })}
+          >
+            Imprimir cartões de mesa
+          </Link>
+        ) : null}
+      </div>
+
+      <div>
+        {(stations ?? []).map((station) => {
+          const token = stationAccessToken(station.station_access);
+          const priestUrl = token
+            ? stationPriestUrl(station.id, token)
+            : null;
+
+          return (
+            <SessionStationCard
+              key={station.id}
+              sessionId={session.id}
+              station={station}
+              priestUrl={priestUrl}
+              printHref={`/admin/sessoes/${session.id}/imprimir/confessionarios/${station.id}`}
+              sessionOpen={live}
+            />
+          );
+        })}
+      </div>
+
+      {session.status !== "FINISHED" && session.status !== "CANCELLED" ? (
+        <div className="border-border/70 border-t pt-4">
+          <p className="mb-3 text-sm font-medium">Adicionar confessionário</p>
+          <AddStationForm sessionId={session.id} />
+        </div>
+      ) : null}
+    </section>
+  );
+
+  const prepPanel = isDraft ? (
+    <SessionPrepChecklist
+      sessionId={session.id}
+      status={session.status}
+      stationCount={(stations ?? []).length}
+      hasPrintableStations={hasPrintableStations}
+    />
+  ) : null;
 
   return (
     <ParishShell
@@ -179,19 +173,40 @@ export default async function AdminSessionPage({
     >
       <AdminSessionRealtime sessionId={session.id} />
 
-      <header className="bg-background/95 sticky top-0 z-20 -mx-4 flex flex-wrap items-start justify-between gap-4 border-b px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+      <header className="bg-background/95 sticky top-0 z-20 -mx-4 flex flex-wrap items-start justify-between gap-4 border-b px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-10 lg:px-10">
         <div className="min-w-0">
+          <nav
+            aria-label="Navegação estrutural"
+            className="text-muted-foreground mb-1 flex flex-wrap items-center gap-1.5 text-xs"
+          >
+            <Link
+              href="/admin/sessoes"
+              className="hover:text-foreground underline-offset-4 hover:underline"
+            >
+              Sessões
+            </Link>
+            <span aria-hidden="true">/</span>
+            <span className="text-foreground truncate">{session.name}</span>
+          </nav>
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="font-heading text-2xl tracking-tight">
               {session.name}
             </h1>
             <SessionStatusBadge status={session.status} />
           </div>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Prefixo {session.ticket_prefix}
-            {session.starts_at
-              ? ` · ${formatAdminDayTime(session.starts_at)}`
-              : null}
+          <p className="text-muted-foreground mt-1 flex flex-wrap items-center gap-x-2 text-sm">
+            <span>Prefixo {session.ticket_prefix}</span>
+            {session.starts_at ? (
+              <span>· {formatAdminDayTime(session.starts_at)}</span>
+            ) : null}
+            {isDraft ? (
+              <RescheduleSessionDialog
+                sessionId={session.id}
+                startsAt={session.starts_at}
+                endsAt={session.ends_at}
+                pastDraft={pastDraft}
+              />
+            ) : null}
           </p>
         </div>
         <SessionLifecycleActions
@@ -202,179 +217,69 @@ export default async function AdminSessionPage({
         />
       </header>
 
-      <SessionMetricsGrid metrics={metrics} compact={session.status === "DRAFT"} />
+      <SessionMetricsGrid metrics={metrics} compact={isDraft} />
 
-      {session.status === "DRAFT" ? (
-        <SessionPrepChecklist
-          sessionId={session.id}
-          status={session.status}
-          stationCount={(stations ?? []).length}
-          hasPrintableStations={hasPrintableStations}
+      <div className="grid items-start gap-10 xl:grid-cols-[minmax(0,1fr)_22rem]">
+        <SessionDetailTabs
+          defaultTab={live ? "queue" : isDraft ? "prep" : "queue"}
+          queue={queuePanel}
+          stations={stationsPanel}
+          prep={prepPanel}
         />
-      ) : null}
 
-      {pastDraft ? (
-        <Card id="reagendar">
-          <CardHeader>
-            <CardTitle>Horário já passou</CardTitle>
-            <CardDescription>
-              Reagende o rascunho antes de abrir a fila.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <RescheduleSessionForm
-              sessionId={session.id}
-              startsAt={session.starts_at}
-              endsAt={session.ends_at}
+        <aside className="border-border/70 xl:sticky xl:top-24 space-y-8 border-t pt-6 xl:border-t-0 xl:border-l xl:pt-0 xl:pl-8">
+          <div className="space-y-3">
+            <h2 className="font-heading text-lg">Divulgação & operação</h2>
+            <QrCodeCard
+              url={publicUrl}
+              slug={session.slug}
+              posterHref={`/admin/sessoes/${session.id}/imprimir/cartaz`}
             />
-          </CardContent>
-        </Card>
-      ) : session.status === "DRAFT" ? (
-        <Card id="reagendar">
-          <CardHeader>
-            <CardTitle>Horário</CardTitle>
-            <CardDescription>Ajuste início e término previstos.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <RescheduleSessionForm
-              sessionId={session.id}
-              startsAt={session.starts_at}
-              endsAt={session.ends_at}
-            />
-          </CardContent>
-        </Card>
-      ) : null}
-
-      <section
-        className={
-          live ? "grid items-start gap-4 xl:grid-cols-2" : "grid gap-4 xl:grid-cols-2"
-        }
-      >
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Operação</CardTitle>
-              <CardDescription>
-                Encerrar a entrada impede novas senhas. A TV atualiza sozinha.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-5">
-              <SessionLifecycleActions
-                sessionId={session.id}
-                status={session.status}
-                showWaitingQueueOnTv={session.show_waiting_queue_on_tv}
-                mode="tv"
-              />
-              <div className="border-t pt-5">
-                <h3 className="mb-1 font-medium">Senhas de papel</h3>
-                <PrintTicketBatchForm
-                  sessionId={session.id}
-                  ticketPrefix={session.ticket_prefix}
-                  disabled={session.status !== "OPEN"}
-                  batches={printBatches ?? []}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Telão e fiel</CardTitle>
-              <CardDescription>
-                Use F11 para tela cheia na TV. O cartaz usa o mesmo QR da página
-                do fiel.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <QrCodeCard
-                url={publicUrl}
-                slug={session.slug}
-                posterHref={`/admin/sessoes/${session.id}/imprimir/cartaz`}
-              />
-              <div className="flex flex-wrap gap-2">
-                <a
-                  href={tvUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={buttonVariants({ size: "lg" })}
-                >
-                  Abrir TV
-                </a>
-                <CopyLinkButton url={tvUrl} label="Copiar link da TV" size="lg" />
-                <a
-                  href={publicUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={buttonVariants({ variant: "outline" })}
-                >
-                  Página do fiel
-                </a>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {live ? ticketTable : (
-          <div className="space-y-4">
-            <p className="sr-only">Fila</p>
           </div>
-        )}
-      </section>
 
-      <section id="confessionarios" className="space-y-4">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 className="font-heading text-lg">Confessionários</h2>
-            <p className="text-muted-foreground text-sm">
-              Imprima o cartão e cole na mesa. O sacerdote entra pelo QR daquele
-              posto.
+          <div className="space-y-3">
+            <p className="overline-label">Atalhos de tela</p>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href={tvUrl}
+                target="_blank"
+                rel="noreferrer"
+                className={buttonVariants({ variant: "secondary" })}
+              >
+                Abrir TV
+              </a>
+              <CopyLinkButton url={tvUrl} label="Copiar link da TV" />
+              <a
+                href={publicUrl}
+                target="_blank"
+                rel="noreferrer"
+                className={buttonVariants({ variant: "ghost" })}
+              >
+                Página do fiel
+              </a>
+            </div>
+            <p className="text-muted-foreground text-xs">
+              Use F11 para tela cheia na TV.
             </p>
+            <SessionLifecycleActions
+              sessionId={session.id}
+              status={session.status}
+              showWaitingQueueOnTv={session.show_waiting_queue_on_tv}
+              mode="tv"
+            />
           </div>
-          {hasPrintableStations ? (
-            <Link
-              href={`/admin/sessoes/${session.id}/imprimir/confessionarios`}
-              target="_blank"
-              rel="noreferrer"
-              className={buttonVariants({ variant: "secondary" })}
-            >
-              Imprimir cartões de mesa
-            </Link>
-          ) : null}
-        </div>
 
-        <div className="grid gap-3 md:grid-cols-2">
-          {(stations ?? []).map((station) => {
-            const token = stationAccessToken(station.station_access);
-            const priestUrl = token
-              ? stationPriestUrl(station.id, token)
-              : null;
-
-            return (
-              <SessionStationCard
-                key={station.id}
-                sessionId={session.id}
-                station={station}
-                priestUrl={priestUrl}
-                printHref={`/admin/sessoes/${session.id}/imprimir/confessionarios/${station.id}`}
-                sessionOpen={live}
-              />
-            );
-          })}
-        </div>
-
-        {session.status !== "FINISHED" && session.status !== "CANCELLED" ? (
-          <Card size="sm">
-            <CardHeader>
-              <CardTitle>Adicionar confessionário</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <AddStationForm sessionId={session.id} />
-            </CardContent>
-          </Card>
-        ) : null}
-      </section>
-
-      {live ? null : ticketTable}
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium">Senhas de papel</h3>
+            <PrintTicketBatchForm
+              sessionId={session.id}
+              ticketPrefix={session.ticket_prefix}
+              disabled={session.status !== "OPEN"}
+              batches={printBatches ?? []}
+            />
+          </div>
+        </aside>
+      </div>
     </ParishShell>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { MoreHorizontalIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -12,13 +13,6 @@ import { CopyLinkButton } from "@/components/admin/copy-link-button";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -26,6 +20,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { stationStatusLabel } from "@/lib/admin/labels";
@@ -91,14 +91,14 @@ export function SessionStationCard({
   }
 
   return (
-    <Card size="sm">
-      <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
-        <div>
-          <CardTitle>{station.name}</CardTitle>
-          <CardDescription>
-            {station.priest_name || "Sacerdote não informado"}
-          </CardDescription>
-        </div>
+    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/70 py-3 last:border-0">
+      <div className="min-w-0">
+        <p className="font-medium">{station.name}</p>
+        <p className="text-muted-foreground text-sm">
+          {station.priest_name || "Sacerdote não informado"}
+        </p>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
         {sessionOpen ? (
           <Badge
             variant="outline"
@@ -118,56 +118,53 @@ export function SessionStationCard({
             Aguardando abertura
           </span>
         )}
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="relative z-10 flex flex-wrap gap-2">
-          {priestUrl ? (
-            <>
-              <a
-                href={priestUrl}
-                target="_blank"
-                rel="noreferrer"
-                className={buttonVariants({ variant: "outline", size: "sm" })}
-              >
-                Painel do padre
-              </a>
-              <CopyLinkButton
-                url={priestUrl}
-                label="Copiar link do padre"
-              />
-              <a
-                href={printHref}
-                target="_blank"
-                rel="noreferrer"
-                className={buttonVariants({ variant: "secondary", size: "sm" })}
+        {priestUrl ? (
+          <>
+            <a
+              href={priestUrl}
+              target="_blank"
+              rel="noreferrer"
+              className={buttonVariants({ variant: "secondary", size: "sm" })}
+            >
+              Abrir painel
+            </a>
+            <CopyLinkButton url={priestUrl} label="Copiar link" variant="ghost" />
+          </>
+        ) : (
+          <p className="text-muted-foreground text-sm">
+            Token de acesso ainda não disponível.
+          </p>
+        )}
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            className={buttonVariants({ variant: "ghost", size: "icon-sm" })}
+            aria-label={`Mais ações de ${station.name}`}
+          >
+            <MoreHorizontalIcon />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            {priestUrl ? (
+              <DropdownMenuItem
+                onClick={() =>
+                  window.open(printHref, "_blank", "noopener,noreferrer")
+                }
               >
                 Imprimir cartão
-              </a>
-            </>
-          ) : (
-            <p className="text-muted-foreground text-sm">
-              Token de acesso ainda não disponível.
-            </p>
-          )}
-          <Button type="button" variant="ghost" size="sm" onClick={() => setEditOpen(true)}>
-            Editar
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            disabled={busy}
-            title={
-              busy
-                ? "Não é possível remover com atendimento em andamento"
-                : undefined
-            }
-            onClick={() => setConfirmOpen(true)}
-          >
-            Remover
-          </Button>
-        </div>
-      </CardContent>
+              </DropdownMenuItem>
+            ) : null}
+            <DropdownMenuItem onClick={() => setEditOpen(true)}>
+              Editar
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              variant="destructive"
+              disabled={busy}
+              onClick={() => setConfirmOpen(true)}
+            >
+              Remover
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent>
@@ -227,6 +224,6 @@ export function SessionStationCard({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Card>
+    </div>
   );
 }

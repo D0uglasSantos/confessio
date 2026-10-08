@@ -20,6 +20,7 @@ Realtime invalida e o cliente **refetcha a RPC**. Não enviar `anonymous_token`,
 
 - Um ticket ativo (`CALLED` / `IN_SERVICE`) por estação.
 - `public_number` / `public_code` únicos por sessão.
+- `ends_at` encerra só a entrada (`ENTRY_CLOSED`) no PostgreSQL; não finaliza a sessão.
 - Fiel e sacerdote sem conta no MVP. Só `/admin` usa Supabase Auth.
 
 Detalhe de schema, estados e testes: [DATABASE.md](../DATABASE.md).
