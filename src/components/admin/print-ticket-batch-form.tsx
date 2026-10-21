@@ -68,7 +68,7 @@ export function PrintTicketBatchForm({
         <Label htmlFor="paper-ticket-count">Quantidade de senhas</Label>
         <select
           id="paper-ticket-count"
-          className="border-input bg-background h-10 w-full max-w-xs rounded-lg border px-3 text-sm"
+          className="border-input bg-card h-10 w-full max-w-xs rounded-lg border px-3 text-sm"
           value={count}
           disabled={disabled || pending}
           onChange={(event) =>

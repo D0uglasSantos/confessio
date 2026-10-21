@@ -34,7 +34,7 @@ export default async function AdminLoginPage({
         />
         <div
           aria-hidden
-          className="absolute inset-0 bg-gradient-to-t from-[#f4ecdf]/70 via-[#f4ecdf]/10 to-[#f4ecdf]/35"
+          className="absolute inset-0 bg-gradient-to-t from-background/75 via-background/10 to-background/30"
         />
         <div className="relative z-10 flex w-full flex-col justify-between px-12 py-12">
           <BrandMark lockup />

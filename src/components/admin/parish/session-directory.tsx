@@ -150,7 +150,7 @@ export function SessionDirectory({
       ) : (
         <div className="overflow-x-auto">
             <table className="w-full min-w-[56rem] text-left text-sm">
-              <thead className="text-muted-foreground border-b text-[11px] tracking-[0.08em] uppercase">
+              <thead className="text-muted-foreground border-b border-border text-[11px] tracking-[0.08em] uppercase">
                 <tr>
                   <th scope="col" className="px-3 py-3 font-medium">
                     Sessão
@@ -184,7 +184,7 @@ export function SessionDirectory({
                   return (
                     <tr
                       key={session.id}
-                      className="hover:bg-primary/4 group relative border-b border-border/70 last:border-0"
+                      className="hover:bg-card group relative border-b border-border last:border-0"
                     >
                       <td className="px-3 py-3.5">
                         <Link

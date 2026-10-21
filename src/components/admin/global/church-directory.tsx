@@ -134,7 +134,7 @@ export function ChurchDirectory({
       ) : (
         <div className="overflow-x-auto">
             <table className="w-full min-w-[52rem] text-left text-sm">
-              <thead className="text-muted-foreground border-b text-[11px] tracking-[0.08em] uppercase">
+              <thead className="text-muted-foreground border-b border-border text-[11px] tracking-[0.08em] uppercase">
                 <tr>
                   <th scope="col" className="px-4 py-3 font-medium">
                     Paróquia
@@ -160,7 +160,7 @@ export function ChurchDirectory({
                 {pageItems.map((church) => (
                   <tr
                     key={church.id}
-                    className="hover:bg-primary/4 relative border-b border-border/70 last:border-0"
+                    className="hover:bg-card relative border-b border-border last:border-0"
                   >
                     <td className="px-4 py-3">
                       <Link
