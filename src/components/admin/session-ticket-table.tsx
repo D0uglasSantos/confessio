@@ -75,7 +75,7 @@ export function SessionTicketTable({
 
       <div className="max-h-[70vh] overflow-auto">
         <table className="w-full min-w-[36rem] text-left text-sm">
-          <thead className="bg-background text-muted-foreground sticky top-0 border-b text-[11px] tracking-[0.08em] uppercase">
+          <thead className="bg-card text-muted-foreground sticky top-0 border-b border-border text-[11px] tracking-[0.08em] uppercase">
             <tr>
               <th scope="col" className="px-3 py-3 font-medium">
                 Senha
@@ -108,7 +108,7 @@ export function SessionTicketTable({
               filtered.map((ticket) => (
                 <tr
                   key={ticket.id}
-                  className="hover:bg-primary/4 border-b border-border/70 last:border-0"
+                  className="hover:bg-card border-b border-border last:border-0"
                 >
                   <td className="px-3 py-2.5 font-medium tabular-nums">
                     {ticket.public_code}

@@ -18,7 +18,7 @@ function Card({
       className={cn(
         "group/card text-card-foreground flex flex-col gap-(--card-spacing) overflow-hidden rounded-2xl py-(--card-spacing) text-sm [--card-spacing:--spacing(4)] has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(3)] data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-2xl *:[img:last-child]:rounded-b-2xl",
         variant === "default" &&
-          "bg-card ring-foreground/8 ring-1",
+          "bg-card ring-foreground/12 ring-1",
         variant === "plain" && "bg-transparent",
         className,
       )}
