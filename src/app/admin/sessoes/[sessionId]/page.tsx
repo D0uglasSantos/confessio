@@ -54,24 +54,27 @@ export default async function AdminSessionPage({
     notFound();
   }
 
-  const [{ data: stations }, { data: adminStateRaw }, { data: printBatches }] =
-    await Promise.all([
-      supabase
-        .from("stations")
-        .select("id, name, priest_name, status, station_access(access_token)")
-        .eq("session_id", sessionId)
-        .order("name"),
-      supabase.rpc("admin_get_session_state", { p_session_id: sessionId }),
-      supabase
-        .from("paper_print_batches")
-        .select(
-          "id, ticket_count, first_public_number, last_public_number, created_at",
-        )
-        .eq("session_id", sessionId)
-        .order("created_at", { ascending: false }),
-    ]);
+  const { data: adminStateRaw } = await supabase.rpc("admin_get_session_state", {
+    p_session_id: sessionId,
+  });
+
+  const [{ data: stations }, { data: printBatches }] = await Promise.all([
+    supabase
+      .from("stations")
+      .select("id, name, priest_name, status, station_access(access_token)")
+      .eq("session_id", sessionId)
+      .order("name"),
+    supabase
+      .from("paper_print_batches")
+      .select(
+        "id, ticket_count, first_public_number, last_public_number, created_at",
+      )
+      .eq("session_id", sessionId)
+      .order("created_at", { ascending: false }),
+  ]);
 
   const adminState = parseAdminSessionState(adminStateRaw);
+  const status = adminState?.session.status ?? session.status;
   const metrics = adminState?.metrics ?? {
     total: 0,
     waiting: 0,
@@ -90,10 +93,10 @@ export default async function AdminSessionPage({
   const hasPrintableStations = (stations ?? []).some((station) =>
     stationAccessToken(station.station_access),
   );
-  const live = session.status === "OPEN" || session.status === "ENTRY_CLOSED";
+  const live = status === "OPEN" || status === "ENTRY_CLOSED";
   const pastDraft =
-    session.status === "DRAFT" && isPastInBrazil(session.starts_at);
-  const isDraft = session.status === "DRAFT";
+    status === "DRAFT" && isPastInBrazil(session.starts_at);
+  const isDraft = status === "DRAFT";
 
   const queuePanel = (
     <section className="space-y-3">
@@ -146,7 +149,7 @@ export default async function AdminSessionPage({
         })}
       </div>
 
-      {session.status !== "FINISHED" && session.status !== "CANCELLED" ? (
+      {status !== "FINISHED" && status !== "CANCELLED" ? (
         <div className="border-border/70 border-t pt-4">
           <p className="mb-3 text-sm font-medium">Adicionar confessionário</p>
           <AddStationForm sessionId={session.id} />
@@ -158,7 +161,7 @@ export default async function AdminSessionPage({
   const prepPanel = isDraft ? (
     <SessionPrepChecklist
       sessionId={session.id}
-      status={session.status}
+      status={status}
       stationCount={(stations ?? []).length}
       hasPrintableStations={hasPrintableStations}
     />
@@ -192,7 +195,7 @@ export default async function AdminSessionPage({
             <h1 className="font-heading text-2xl tracking-tight">
               {session.name}
             </h1>
-            <SessionStatusBadge status={session.status} />
+            <SessionStatusBadge status={status} />
           </div>
           <p className="text-muted-foreground mt-1 flex flex-wrap items-center gap-x-2 text-sm">
             <span>Prefixo {session.ticket_prefix}</span>
@@ -211,7 +214,7 @@ export default async function AdminSessionPage({
         </div>
         <SessionLifecycleActions
           sessionId={session.id}
-          status={session.status}
+          status={status}
           showWaitingQueueOnTv={session.show_waiting_queue_on_tv}
           mode="primary"
         />
@@ -263,7 +266,7 @@ export default async function AdminSessionPage({
             </p>
             <SessionLifecycleActions
               sessionId={session.id}
-              status={session.status}
+              status={status}
               showWaitingQueueOnTv={session.show_waiting_queue_on_tv}
               mode="tv"
             />
@@ -274,7 +277,7 @@ export default async function AdminSessionPage({
             <PrintTicketBatchForm
               sessionId={session.id}
               ticketPrefix={session.ticket_prefix}
-              disabled={session.status !== "OPEN"}
+              disabled={status !== "OPEN"}
               batches={printBatches ?? []}
             />
           </div>

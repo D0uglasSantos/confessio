@@ -87,21 +87,18 @@ export const addStationSchema = z.object({
   priestName: z.string().optional(),
 });
 
-export const PAPER_TICKET_COUNTS = [
-  50, 100, 150, 200, 250, 300, 350, 400, 450, 500,
-] as const;
+export const PAPER_TICKET_MIN = 1;
+export const PAPER_TICKET_MAX = 500;
 
-export type PaperTicketCount = (typeof PAPER_TICKET_COUNTS)[number];
+export const PAPER_TICKET_PRESETS = [50, 100, 150, 200, 300, 500] as const;
 
 export const issuePaperTicketsSchema = z.object({
   sessionId: z.uuid(),
   count: z.coerce
     .number()
-    .refine(
-      (value): value is PaperTicketCount =>
-        (PAPER_TICKET_COUNTS as readonly number[]).includes(value),
-      "Escolha um lote de 50 a 500, de 50 em 50.",
-    ),
+    .int("Informe um número inteiro de senhas.")
+    .min(PAPER_TICKET_MIN, "Informe pelo menos 1 senha.")
+    .max(PAPER_TICKET_MAX, "O lote máximo é de 500 senhas."),
 });
 
 export type CreateSessionInput = z.infer<typeof createSessionSchema>;

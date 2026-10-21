@@ -725,6 +725,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      sync_church_scheduled_sessions: { Args: never; Returns: undefined }
       start_service: {
         Args: {
           p_access_token: string

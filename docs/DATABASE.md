@@ -316,7 +316,7 @@ ENTRY_CLOSED
 FINISHED
 ```
 
-`ends_at` é o horário de fim do agendamento, não o fim do atendimento. Quando a sessão está `OPEN` e `ends_at <= now()`, o PostgreSQL persiste `ENTRY_CLOSED` (`private.close_entry_if_ended`), chamado em `create_ticket`, `admin_issue_paper_tickets`, `get_public_session_state`, `get_station_state` e `admin_get_session_state`. Novos tickets recebem `SESSION_NOT_OPEN`. Quem já está `WAITING` / `CALLED` / `IN_SERVICE` continua até ser atendido, desistir ou o admin finalizar a sessão. Sem `ends_at`, só o admin encerra a entrada. A sessão não vira `FINISHED` sozinha.
+`starts_at` abre a fila se ela ainda estiver `DRAFT` quando o horário chega (`private.open_entry_if_started`): status vira `OPEN`, `entry_opened_at` é preenchido e confessionários `OFFLINE` passam a `AVAILABLE`. Sem `starts_at`, ou com `starts_at` no futuro, só o admin abre. `ends_at` é o horário de fim do agendamento, não o fim do atendimento. Quando a sessão está `OPEN` e `ends_at <= now()`, o PostgreSQL persiste `ENTRY_CLOSED` (`private.close_entry_if_ended`). As duas transições rodam juntas em `private.sync_scheduled_session`, chamado em `create_ticket`, `admin_issue_paper_tickets`, `get_public_session_state`, `get_station_state` e `admin_get_session_state`. A secretaria também dispara `sync_church_scheduled_sessions` ao abrir a visão geral e a lista de sessões. Novos tickets recebem `SESSION_NOT_OPEN` depois do fim. Quem já está `WAITING` / `CALLED` / `IN_SERVICE` continua até ser atendido, desistir ou o admin finalizar a sessão. Sem `ends_at`, só o admin encerra a entrada. A sessão não vira `FINISHED` sozinha. Se os dois horários já passaram e a fila ainda é `DRAFT`, o resultado é `ENTRY_CLOSED`.
 
 Cancelamento excepcional:
 
@@ -2458,7 +2458,7 @@ DRAFT → OPEN
 
 Depois disso `create_ticket()` passa a aceitar entradas.
 
-Assim que `ends_at` chega, a entrada fecha sozinha (`OPEN` → `ENTRY_CLOSED`). O admin ainda pode encerrar a entrada antes do horário. Finalizar a sessão continua sendo ação manual.
+Se ninguém abrir antes, `starts_at` abre a fila sozinha (`DRAFT` → `OPEN`). Assim que `ends_at` chega, a entrada fecha sozinha (`OPEN` → `ENTRY_CLOSED`). O admin ainda pode abrir antes do horário e encerrar a entrada antes do fim. Finalizar a sessão continua sendo ação manual.
 
 ---
 

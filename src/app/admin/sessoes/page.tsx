@@ -42,6 +42,7 @@ function withTicketStats(
 
 export default async function AdminSessionsPage() {
   const { church, admin, supabase, user } = await requireAdminChurch();
+  await supabase.rpc("sync_church_scheduled_sessions");
   const [{ data: sessions }, { data: isGlobalAdmin }] = await Promise.all([
     admin
       .from("sessions")

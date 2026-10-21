@@ -19,6 +19,12 @@ export function AdminSessionRealtime({ sessionId }: { sessionId: string }) {
       });
     };
 
+    const syncId = window.setInterval(() => {
+      void supabase.rpc("admin_get_session_state", {
+        p_session_id: sessionId,
+      });
+    }, 10_000);
+
     const channel = supabase
       .channel(`admin-session:${sessionId}`)
       .on(
@@ -60,6 +66,7 @@ export function AdminSessionRealtime({ sessionId }: { sessionId: string }) {
       });
 
     return () => {
+      window.clearInterval(syncId);
       refetch.dispose();
       void supabase.removeChannel(channel);
     };

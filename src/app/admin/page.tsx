@@ -28,6 +28,7 @@ export const metadata = {
 
 export default async function AdminPage() {
   const { church, admin, supabase, user } = await requireAdminChurch();
+  await supabase.rpc("sync_church_scheduled_sessions");
   const [{ data: sessions }, { data: isGlobalAdmin }] = await Promise.all([
     admin
       .from("sessions")
