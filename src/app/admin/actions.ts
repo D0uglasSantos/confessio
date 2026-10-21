@@ -793,7 +793,7 @@ export async function issuePaperTicketsAction(
       ok: false,
       message:
         parsed.error.issues[0]?.message ??
-        "Escolha um lote de 50 a 500, de 50 em 50.",
+        "Informe de 1 a 500 senhas.",
     };
   }
 

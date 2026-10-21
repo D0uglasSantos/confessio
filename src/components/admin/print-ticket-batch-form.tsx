@@ -5,14 +5,17 @@ import Link from "next/link";
 import { toast } from "sonner";
 
 import { issuePaperTicketsAction } from "@/app/admin/actions";
+import { formatCounted } from "@/lib/admin/format";
 import { startNavigationProgress } from "@/components/navigation-progress";
 import { useInFlightLock } from "@/hooks/use-in-flight-lock";
 import { formatPublicCode } from "@/lib/queue/ticket";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  PAPER_TICKET_COUNTS,
-  type PaperTicketCount,
+  PAPER_TICKET_MAX,
+  PAPER_TICKET_MIN,
+  PAPER_TICKET_PRESETS,
 } from "@/lib/validations/session";
 
 type PrintBatchSummary = {
@@ -34,22 +37,29 @@ export function PrintTicketBatchForm({
   disabled?: boolean;
   batches: PrintBatchSummary[];
 }) {
-  const [count, setCount] = useState<PaperTicketCount>(50);
+  const [count, setCount] = useState("50");
   const [pending, startTransition] = useTransition();
   const lock = useInFlightLock();
+  const parsedCount = Number(count);
+  const countIsValid =
+    Number.isInteger(parsedCount) &&
+    parsedCount >= PAPER_TICKET_MIN &&
+    parsedCount <= PAPER_TICKET_MAX;
 
   function issue() {
-    if (!lock.tryAcquire()) return;
+    if (!countIsValid || !lock.tryAcquire()) return;
 
     startTransition(async () => {
       try {
-        const result = await issuePaperTicketsAction(sessionId, count);
+        const result = await issuePaperTicketsAction(sessionId, parsedCount);
         if (!result.ok) {
           toast.error(result.message);
           return;
         }
 
-        toast.success(`${count} senhas prontas para imprimir.`);
+        toast.success(
+          `${formatCounted(parsedCount, { one: "senha pronta", other: "senhas prontas" })} para imprimir.`,
+        );
         const printUrl = `/admin/sessoes/${sessionId}/imprimir/lote/${result.batchId}`;
         const opened = window.open(printUrl, "_blank", "noopener,noreferrer");
         if (!opened) {
@@ -66,34 +76,56 @@ export function PrintTicketBatchForm({
     <div className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="paper-ticket-count">Quantidade de senhas</Label>
-        <select
+        <Input
           id="paper-ticket-count"
-          className="border-input bg-card h-10 w-full max-w-xs rounded-lg border px-3 text-sm"
+          type="number"
+          inputMode="numeric"
+          min={PAPER_TICKET_MIN}
+          max={PAPER_TICKET_MAX}
+          step={1}
           value={count}
           disabled={disabled || pending}
-          onChange={(event) =>
-            setCount(Number(event.target.value) as PaperTicketCount)
-          }
-        >
-          {PAPER_TICKET_COUNTS.map((value) => (
-            <option key={value} value={value}>
-              {value} senhas
-            </option>
+          aria-invalid={!countIsValid}
+          aria-describedby="paper-ticket-count-hint"
+          className="max-w-xs"
+          onChange={(event) => setCount(event.target.value)}
+        />
+        <div className="flex flex-wrap gap-2">
+          {PAPER_TICKET_PRESETS.map((value) => (
+            <Button
+              key={value}
+              type="button"
+              size="sm"
+              variant={parsedCount === value ? "default" : "outline"}
+              disabled={disabled || pending}
+              onClick={() => setCount(String(value))}
+            >
+              {value}
+            </Button>
           ))}
-        </select>
+        </div>
+        <p id="paper-ticket-count-hint" className="text-muted-foreground text-xs">
+          {countIsValid
+            ? "Escolha um atalho ou digite qualquer quantidade de 1 a 500."
+            : "Informe um número inteiro de 1 a 500."}
+        </p>
       </div>
 
       <Button
         type="button"
         variant="secondary"
         loading={pending}
-        disabled={disabled}
+        disabled={disabled || !countIsValid}
         title={
           disabled ? "Disponível depois de abrir a fila" : undefined
         }
         onClick={issue}
       >
-        {pending ? "Gerando senhas..." : `Imprimir ${count} senhas`}
+        {pending
+          ? "Gerando senhas..."
+          : countIsValid
+            ? `Imprimir ${formatCounted(parsedCount, { one: "senha", other: "senhas" })}`
+            : "Imprimir senhas"}
       </Button>
 
       <p className="text-sm text-muted-foreground">

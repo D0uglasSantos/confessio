@@ -29,7 +29,6 @@ export function JoinQueueButton({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [phone, setPhone] = useState("");
-  const [whatsappOpen, setWhatsappOpen] = useState(false);
   const [paperOpen, setPaperOpen] = useState(false);
   const lock = useInFlightLock();
 
@@ -101,6 +100,43 @@ export function JoinQueueButton({
           {error}
         </p>
       ) : null}
+
+      <section className="border-primary/30 bg-primary/10 space-y-3 rounded-2xl border p-4 shadow-sm">
+        <div className="flex items-start gap-3">
+          <span className="bg-primary text-primary-foreground flex size-11 shrink-0 items-center justify-center rounded-full">
+            <MessageCircleIcon aria-hidden className="size-5" />
+          </span>
+          <div className="min-w-0 space-y-1">
+            <h2 className="text-foreground text-base font-semibold">
+              Aviso no WhatsApp
+            </h2>
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              Opcional. Avisamos quando for a sua vez. O número não aparece no
+              telão.
+            </p>
+          </div>
+        </div>
+        <div className="relative">
+          <MessageCircleIcon
+            aria-hidden
+            className="text-primary pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2"
+          />
+          <Input
+            id="join-phone"
+            name="phone"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            aria-label="WhatsApp (opcional)"
+            placeholder="(61) 99999-9999"
+            value={phone}
+            onChange={(event) => setPhone(formatPhoneInput(event.target.value))}
+            disabled={disabled || pending}
+            className="border-primary/25 bg-card h-14 rounded-xl pl-12 text-base shadow-none"
+          />
+        </div>
+      </section>
+
       <Button
         type="submit"
         size="lg"
@@ -110,44 +146,6 @@ export function JoinQueueButton({
       >
         {pending ? "Entrando na fila..." : "Entrar na fila"}
       </Button>
-
-      <div className="space-y-2">
-        <button
-          type="button"
-          className="text-muted-foreground text-left text-sm underline-offset-4 hover:underline"
-          aria-expanded={whatsappOpen}
-          onClick={() => setWhatsappOpen((value) => !value)}
-        >
-          Quer receber um aviso no WhatsApp?
-        </button>
-        {whatsappOpen ? (
-          <div className="space-y-2">
-            <p className="text-muted-foreground text-sm leading-relaxed">
-              Se quiser, avisamos no WhatsApp quando for a sua vez. O número não
-              aparece no telão.
-            </p>
-            <div className="relative">
-              <MessageCircleIcon
-                aria-hidden
-                className="text-muted-foreground pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2"
-              />
-              <Input
-                id="join-phone"
-                name="phone"
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
-                aria-label="WhatsApp (opcional)"
-                placeholder="(61) 99999-9999"
-                value={phone}
-                onChange={(event) => setPhone(formatPhoneInput(event.target.value))}
-                disabled={disabled || pending}
-                className="h-12 rounded-xl pl-12 text-base"
-              />
-            </div>
-          </div>
-        ) : null}
-      </div>
 
       <div>
         <button

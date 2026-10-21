@@ -66,6 +66,9 @@ DECLARE
   v_ended_token uuid;
   v_ended_ticket public.fiel_ticket;
   v_called_ended public.tickets;
+  v_auto_session uuid;
+  v_auto_station uuid;
+  v_batch uuid;
   v_err text;
 BEGIN
   -- Isolamento: sessão CANCELLED de outra paróquia não aparece;
@@ -515,6 +518,119 @@ BEGIN
     ),
     'get_public_session_state did not persist ENTRY_CLOSED'
   );
+
+  -- starts_at abre a fila; os dois horários no passado fecham só a entrada
+  INSERT INTO public.sessions (
+    church_id, name, slug, status, ticket_prefix, starts_at, ends_at
+  )
+  VALUES (
+    v_church_id,
+    'Sessão abertura automática',
+    'AUTO01',
+    'DRAFT',
+    'A',
+    now() - interval '1 minute',
+    now() + interval '2 hours'
+  )
+  RETURNING id INTO v_auto_session;
+
+  INSERT INTO public.stations (session_id, name, priest_name)
+  VALUES (v_auto_session, 'Confessionário auto', 'Pe. Auto')
+  RETURNING id INTO v_auto_station;
+
+  v_public := public.get_public_session_state('AUTO01');
+  PERFORM pg_temp.assert(
+    v_public #>> '{session,status}' = 'OPEN',
+    'starts_at did not open the queue'
+  );
+  PERFORM pg_temp.assert(
+    (
+      SELECT status = 'OPEN' AND entry_opened_at IS NOT NULL
+      FROM public.sessions
+      WHERE id = v_auto_session
+    ),
+    'get_public_session_state did not persist OPEN'
+  );
+  PERFORM pg_temp.assert(
+    (
+      SELECT status = 'AVAILABLE'
+      FROM public.stations
+      WHERE id = v_auto_station
+    ),
+    'auto-open did not set station AVAILABLE'
+  );
+
+  INSERT INTO public.sessions (
+    church_id, name, slug, status, ticket_prefix, starts_at, ends_at
+  )
+  VALUES (
+    v_church_id,
+    'Sessão ainda não começou',
+    'AUTO02',
+    'DRAFT',
+    'B',
+    now() + interval '1 hour',
+    now() + interval '2 hours'
+  );
+
+  v_public := public.get_public_session_state('AUTO02');
+  PERFORM pg_temp.assert(
+    v_public #>> '{session,status}' = 'DRAFT',
+    'future starts_at must stay DRAFT'
+  );
+
+  INSERT INTO public.sessions (
+    church_id, name, slug, status, ticket_prefix, starts_at, ends_at
+  )
+  VALUES (
+    v_church_id,
+    'Sessão horário já encerrado',
+    'AUTO03',
+    'DRAFT',
+    'D',
+    now() - interval '2 hours',
+    now() - interval '1 minute'
+  );
+
+  v_public := public.get_public_session_state('AUTO03');
+  PERFORM pg_temp.assert(
+    v_public #>> '{session,status}' = 'ENTRY_CLOSED',
+    'past starts_at and ends_at must close entry without finishing'
+  );
+  PERFORM pg_temp.assert(
+    (
+      SELECT status = 'ENTRY_CLOSED' AND finished_at IS NULL
+      FROM public.sessions
+      WHERE slug = 'AUTO03'
+    ),
+    'scheduled end must not finish the session'
+  );
+
+  PERFORM pg_temp.set_auth(v_local_admin);
+  v_batch := public.admin_issue_paper_tickets(v_auto_session, 7);
+  PERFORM pg_temp.assert(v_batch IS NOT NULL, 'custom paper ticket count failed');
+  PERFORM pg_temp.assert(
+    (
+      SELECT ticket_count = 7
+      FROM public.paper_print_batches
+      WHERE id = v_batch
+    ),
+    'custom paper batch count mismatch'
+  );
+
+  BEGIN
+    PERFORM public.admin_issue_paper_tickets(v_auto_session, 0);
+    RAISE EXCEPTION 'paper ticket count 0 must fail';
+  EXCEPTION
+    WHEN OTHERS THEN
+      v_err := SQLERRM;
+      IF v_err LIKE '%paper ticket count 0 must fail%' THEN
+        RAISE;
+      END IF;
+      IF v_err NOT LIKE '%INVALID_PAPER_TICKET_COUNT%' THEN
+        RAISE EXCEPTION 'expected INVALID_PAPER_TICKET_COUNT, got %', v_err;
+      END IF;
+  END;
 
   RAISE NOTICE 'MVP-01 regression passed';
 END $$;
