@@ -97,26 +97,27 @@ export default async function AdminPage() {
         ) : (
           <ul className="divide-y divide-border/70">
             {recent.map((session) => (
-              <li key={session.id} className="group relative">
+              <li
+                key={session.id}
+                className="hover:bg-primary/4 flex items-center gap-3 rounded-xl px-2 py-2.5"
+              >
                 <Link
                   href={`/admin/sessoes/${session.id}`}
-                  className="hover:bg-primary/4 flex items-center justify-between gap-3 rounded-xl px-2 py-3"
+                  className="focus-visible:ring-ring/50 min-w-0 flex-1 rounded-sm py-0.5 focus-visible:ring-3 focus-visible:outline-none"
                 >
-                  <div className="min-w-0">
-                    <p className="truncate font-medium">{session.name}</p>
-                    <p className="text-muted-foreground text-xs">
-                      {session.starts_at
-                        ? formatAdminDateTime(session.starts_at)
-                        : `/s/${session.slug}`}
-                    </p>
-                  </div>
-                  <SessionStatusBadge status={session.status} />
+                  <p className="truncate font-medium">{session.name}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {session.starts_at
+                      ? formatAdminDateTime(session.starts_at)
+                      : `/s/${session.slug}`}
+                  </p>
                 </Link>
-                {church.is_active ? (
-                  <div className="absolute top-1/2 right-2 z-10 hidden -translate-y-1/2 group-hover:block group-focus-within:block">
+                <div className="flex shrink-0 items-center gap-2">
+                  {church.is_active ? (
                     <DuplicateSessionButton sessionId={session.id} />
-                  </div>
-                ) : null}
+                  ) : null}
+                  <SessionStatusBadge status={session.status} />
+                </div>
               </li>
             ))}
           </ul>
