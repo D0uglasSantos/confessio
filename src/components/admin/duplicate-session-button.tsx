@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { CopyPlusIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { duplicateSessionAction } from "@/app/admin/actions";
@@ -39,15 +40,17 @@ export function DuplicateSessionButton({
   return (
     <Button
       type="button"
-      variant="ghost"
+      variant="outline"
       size="sm"
       loading={pending}
+      aria-label="Duplicar sessão"
       onClick={(event) => {
         event.preventDefault();
         event.stopPropagation();
         duplicate();
       }}
     >
+      {pending ? null : <CopyPlusIcon data-icon="inline-start" />}
       {pending ? "Duplicando..." : "Duplicar"}
     </Button>
   );
