@@ -1,13 +1,8 @@
 "use client";
 
-import { BrandMark } from "@/components/brand-mark";
 import { PulseBlock } from "@/components/loading-state";
-import { QrImage } from "@/components/qr-image";
 import { usePublicSession } from "@/hooks/use-public-session";
-import { sessionStatusLabel, stationStatusLabel } from "@/lib/admin/labels";
-import { formatCounted } from "@/lib/admin/format";
-import { sessionPublicUrl } from "@/lib/app-url";
-import type { PublicStationState } from "@/lib/queue/types";
+import type { PublicSessionState, PublicStationState } from "@/lib/queue/types";
 import { cn } from "@/lib/utils";
 
 export function TvBoardClient({ slug }: { slug: string }) {
@@ -15,165 +10,147 @@ export function TvBoardClient({ slug }: { slug: string }) {
 
   if (isLoading) {
     return (
-      <main
-        className="flex min-h-dvh flex-col items-center justify-center px-8"
-        aria-busy="true"
-      >
+      <main className="tv-shell" aria-busy="true">
         <p className="sr-only">Carregando telão...</p>
-        <PulseBlock className="h-[22vmin] w-[46vw] rounded-[2vw]" />
+        <PulseBlock className="h-full rounded-[1.6vmin]" />
+        <PulseBlock className="h-full rounded-[1.6vmin]" />
       </main>
     );
   }
 
   if (error || !state) {
     return (
-      <main className="flex min-h-dvh flex-col items-center justify-center px-8 text-center">
-        <h1 className="font-heading text-[length:var(--tv-title)]">
-          Telão indisponível
-        </h1>
-        <p className="text-muted-foreground mt-4 text-[length:var(--tv-subtitle)]">
-          {error ?? "Sessão não encontrada."}
-        </p>
+      <main className="tv-shell tv-shell-solo">
+        <section className="tv-now">
+          <p className="tv-now-kicker">Telão</p>
+          <h1 className="font-heading tv-now-idle">Indisponível</h1>
+          <p className="tv-now-note">{error ?? "Sessão não encontrada."}</p>
+        </section>
       </main>
     );
   }
 
-  const { session, stations, waiting_count, waiting_codes } = state;
-  const called = pickHighlightedCall(stations);
-  const draft = session.status === "DRAFT";
+  return <TvBoardView state={state} />;
+}
+
+function TvBoardView({ state }: { state: PublicSessionState }) {
+  const { session, stations, waiting_codes } = state;
+  const calls = visibleCalls(stations);
+  const called = calls.find((station) => station.status === "CALLING") ?? null;
+  const dense = calls.length >= 7;
+  const columns = calls.length >= 11 ? 3 : dense ? 2 : 1;
   const finished =
     session.status === "FINISHED" || session.status === "CANCELLED";
-  const showJoinQr = session.status === "OPEN";
+  const draft = session.status === "DRAFT";
   const showWaiting =
     session.show_waiting_queue_on_tv && waiting_codes.length > 0;
 
+  if (finished || draft) {
+    return (
+      <main className="tv-shell tv-shell-solo">
+        <section className="tv-now">
+          {finished ? (
+            <>
+              <p className="tv-now-kicker">Sessão encerrada</p>
+              <p className="font-heading tv-now-idle">Obrigado</p>
+            </>
+          ) : (
+            <>
+              <p className="tv-now-kicker">Aguarde</p>
+              <p className="font-heading tv-now-message">
+                A fila ainda não foi aberta
+              </p>
+            </>
+          )}
+        </section>
+      </main>
+    );
+  }
+
   return (
-    <main className="tv-shell">
-      <header className="tv-header">
-        <div className="flex min-w-0 items-center gap-4">
-          <BrandMark compact className="hidden sm:inline-flex" />
-          <div className="min-w-0">
-            <p className="tv-kicker">{session.church_name}</p>
-            <h1 className="font-heading tv-title truncate">{session.name}</h1>
-          </div>
-        </div>
-        <p className="tv-status shrink-0">
-          {sessionStatusLabel[session.status]}
-        </p>
-      </header>
-
-      <section className="tv-hero">
-        {finished ? (
-          <>
-            <p className="tv-hero-label">Sessão encerrada</p>
-            <p className="font-heading tv-hero-code text-foreground">
-              Obrigado
-            </p>
-          </>
-        ) : draft ? (
-          <>
-            <p className="tv-hero-label">A fila ainda não foi aberta</p>
-            <p className="font-heading tv-hero-code text-primary/25">Aa</p>
-            <p className="tv-hero-label">Aguarde a equipe da paróquia</p>
-          </>
-        ) : called ? (
-          <>
-            <p className="tv-hero-label">Chamando agora</p>
-            <p
-              key={`${called.current_public_code}-${called.status}`}
-              className={cn(
-                "font-heading tv-hero-code tabular-nums",
-                called.status === "CALLING" ? "tv-call-pop" : "text-primary",
-              )}
-            >
-              {called.current_public_code}
-            </p>
-            <p className="tv-hero-station">{called.name}</p>
-            <p className="tv-hero-label">
-              {called.status === "BUSY" ? "Em atendimento" : "Dirija-se agora"}
-            </p>
-          </>
+    <main className="tv-shell" data-dense={dense ? "true" : undefined}>
+      <NowCall call={called} />
+      <aside className="tv-recent" aria-label="Últimas chamadas">
+        <h2 className="tv-recent-title">Últimas chamadas</h2>
+        {calls.length === 0 ? (
+          <p className="tv-recent-empty">Nenhuma senha chamada</p>
         ) : (
-          <>
-            <p className="tv-hero-label">Aguardando chamada</p>
-            <p className="font-heading tv-hero-code text-primary/20">Aa</p>
-            <p className="tv-hero-label">
-              {waiting_count === 0
-                ? "Fila vazia no momento"
-                : formatCounted(waiting_count, {
-                    one: "pessoa aguardando",
-                    other: "pessoas aguardando",
-                  })}
-            </p>
-          </>
-        )}
-      </section>
-
-      <aside className="tv-side">
-        <section className="tv-stations" aria-label="Confessionários">
-          {stations.map((station) => {
-            const highlighted = called?.id === station.id;
-            return (
+          <div className="tv-calls" data-columns={columns}>
+            {calls.map((station) => (
               <article
                 key={station.id}
-                className={cn("tv-station", highlighted && "tv-station-active")}
+                className={cn(
+                  "tv-call",
+                  station.status === "CALLING" && "tv-call-live",
+                )}
               >
-                <div className="tv-station-top">
-                  <h2 className="tv-station-name">{station.name}</h2>
-                  <span className="tv-station-status">
-                    {stationStatusLabel[station.status]}
-                  </span>
-                </div>
                 <p
                   className={cn(
-                    "font-heading tv-station-code tabular-nums",
-                    station.status === "CALLING" && "tv-station-code-call",
+                    "tv-call-code",
+                    station.status === "CALLING" && "tv-call-code-live",
                   )}
                 >
-                  {station.current_public_code ?? "·"}
+                  {station.current_public_code}
+                  {station.status === "CALLING" ? (
+                    <span className="sr-only">, chamando agora</span>
+                  ) : null}
                 </p>
-                {station.priest_name ? (
-                  <p className="tv-station-priest">{station.priest_name}</p>
-                ) : null}
+                <p className="tv-call-place">{station.name}</p>
               </article>
-            );
-          })}
-        </section>
-
+            ))}
+          </div>
+        )}
         {showWaiting ? (
-          <section className="tv-waiting">
-            <p className="tv-kicker">Próximas senhas</p>
-            <p className="tv-waiting-codes">
-              {waiting_codes.slice(0, 16).join(" · ")}
-            </p>
-          </section>
-        ) : null}
-
-        {showJoinQr ? (
-          <aside className="tv-join mt-auto" aria-label="Entrar na fila">
-            <QrImage
-              url={sessionPublicUrl(session.slug)}
-              alt={`QR Code da sessão ${session.slug}`}
-              width={200}
-              className="tv-join-qr"
-            />
-            <p className="tv-join-label">Sem papel? Aponte a câmera</p>
-          </aside>
+          <p className="tv-next">
+            <span className="tv-next-label">Próximas</span>
+            {waiting_codes.slice(0, 8).join("  ·  ")}
+          </p>
         ) : null}
       </aside>
     </main>
   );
 }
 
-function pickHighlightedCall(stations: PublicStationState[]) {
-  const calling = stations.find(
-    (station) => station.status === "CALLING" && station.current_public_code,
-  );
-  if (calling) return calling;
+function NowCall({ call }: { call: PublicStationState | null }) {
+  if (!call?.current_public_code) {
+    return (
+      <section className="tv-now" aria-live="polite">
+        <div className="tv-now-block">
+          <p className="tv-now-kicker">Senha</p>
+          <p className="font-heading tv-now-idle">Aguardando</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
-    stations.find(
-      (station) => station.status === "BUSY" && station.current_public_code,
-    ) ?? null
+    <section className="tv-now" aria-live="assertive">
+      <div className="tv-now-block">
+        <p className="tv-now-kicker">Senha</p>
+        <p
+          key={`${call.id}-${call.current_public_code}`}
+          className="tv-now-code"
+        >
+          {call.current_public_code}
+        </p>
+      </div>
+      <div className="tv-now-block">
+        <p className="tv-now-kicker">Confessionário</p>
+        <p className="font-heading tv-now-place">{call.name}</p>
+      </div>
+    </section>
   );
+}
+
+function visibleCalls(stations: PublicStationState[]) {
+  const withCode = stations.filter(
+    (station) =>
+      Boolean(station.current_public_code) &&
+      (station.status === "CALLING" || station.status === "BUSY"),
+  );
+
+  return [
+    ...withCode.filter((station) => station.status === "CALLING"),
+    ...withCode.filter((station) => station.status === "BUSY"),
+  ];
 }
