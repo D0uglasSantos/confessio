@@ -81,7 +81,6 @@ export default async function StationCardsPage({
               key={card.id}
               size="half"
               churchName={church.name}
-              sessionName={session.name}
               stationName={card.name}
               priestName={card.priestName}
               qrDataUrl={card.qrDataUrl}
