@@ -44,13 +44,12 @@ export default async function StationCardPage({
 
   return (
     <main className="print-page print-station-cards">
-      <style>{`@page { size: A5 portrait; margin: 8mm; }`}</style>
+      <style>{`@page { size: A5 portrait; margin: 0; }`}</style>
       <PrintAuto />
       <PrintToolbar backHref={`/admin/sessoes/${session.id}`} />
 
       <StationDeskCard
         churchName={church.name}
-        sessionName={session.name}
         stationName={station.name}
         priestName={station.priest_name}
         qrDataUrl={qrDataUrl}

@@ -48,14 +48,13 @@ export default async function PaperTicketPage({
 
   return (
     <main className="print-page print-ticket">
-      <style>{`@page { size: A6 portrait; margin: 6mm; }`}</style>
+      <style>{`@page { size: A6 portrait; margin: 0; }`}</style>
       <PrintAuto />
       <PrintToolbar backHref={backHref} />
 
       <article className="print-ticket-sheet">
         <BrandMark compact className="print-brand-mark" />
         <p className="print-kicker">{church.name}</p>
-        <p className="print-ticket-session">{session.name}</p>
         <p className="print-ticket-label">Sua senha</p>
         <p className="font-heading print-ticket-code">{ticket.public_code}</p>
         <p className="print-ticket-hint">Acompanhe no telão</p>

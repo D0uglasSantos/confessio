@@ -22,12 +22,10 @@ function chunk<T>(items: T[], size: number) {
 export function BatchPrintClient({
   backHref,
   churchName,
-  sessionName,
   tickets,
 }: {
   backHref: string;
   churchName: string;
-  sessionName: string;
   tickets: BatchPrintSlip[];
 }) {
   const [qrs, setQrs] = useState<Record<string, string>>({});
@@ -81,7 +79,6 @@ export function BatchPrintClient({
             <article key={ticket.publicCode} className="print-batch-slip">
               <BrandMark compact className="print-brand-mark" />
               <p className="print-kicker">{churchName}</p>
-              <p className="print-batch-session">{sessionName}</p>
               <p className="print-ticket-label">Sua senha</p>
               <p className="font-heading print-batch-code">
                 {ticket.publicCode}

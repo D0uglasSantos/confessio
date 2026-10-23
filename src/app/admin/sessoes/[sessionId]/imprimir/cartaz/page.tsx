@@ -30,14 +30,13 @@ export default async function SessionPosterPage({ params }: CartazPageProps) {
 
   return (
     <main className="print-page print-poster">
-      <style>{`@page { size: A4 portrait; margin: 12mm; }`}</style>
+      <style>{`@page { size: A4 portrait; margin: 0; }`}</style>
       <PrintAuto />
       <PrintToolbar backHref={backHref} />
 
       <article className="print-poster-sheet">
         <BrandMark lockup className="print-brand-mark" />
-        <p className="print-kicker">{church.name}</p>
-        <h1 className="font-heading print-poster-title">{session.name}</h1>
+        <h1 className="font-heading print-poster-church">{church.name}</h1>
         <p className="print-poster-lead">
           Aponte a câmera do celular para entrar na fila
         </p>
@@ -48,11 +47,6 @@ export default async function SessionPosterPage({ params }: CartazPageProps) {
           alt={`QR Code da sessão ${session.slug}`}
           className="print-poster-qr"
         />
-
-        <p className="print-poster-hint">
-          Não precisa criar conta. Sua senha aparece no celular e no telão.
-        </p>
-        <p className="print-poster-url">{publicUrl}</p>
       </article>
     </main>
   );
