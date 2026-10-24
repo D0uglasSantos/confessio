@@ -131,7 +131,7 @@ export function PrintTicketBatchForm({
       <p className="text-sm text-muted-foreground">
         {disabled
           ? "Disponível depois de abrir a fila. Use o papel para quem chega sem celular."
-          : "Cada papel leva o título da sessão, a senha e um QR próprio. Entregue na ordem impressa."}
+          : "A folha A4 sai com 8 senhas. Cada uma leva o nome da paróquia, o número e um QR. Entregue na ordem impressa."}
       </p>
 
       {batches.length > 0 ? (

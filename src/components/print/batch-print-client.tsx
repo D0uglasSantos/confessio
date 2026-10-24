@@ -11,6 +11,8 @@ export type BatchPrintSlip = {
   claimUrl: string;
 };
 
+const SLIPS_PER_PAGE = 8;
+
 function chunk<T>(items: T[], size: number) {
   const pages: T[][] = [];
   for (let index = 0; index < items.length; index += size) {
@@ -31,14 +33,14 @@ export function BatchPrintClient({
   const [qrs, setQrs] = useState<Record<string, string>>({});
   const readyCount = Object.keys(qrs).length;
   const ready = readyCount === tickets.length && tickets.length > 0;
-  const pages = useMemo(() => chunk(tickets, 4), [tickets]);
+  const pages = useMemo(() => chunk(tickets, SLIPS_PER_PAGE), [tickets]);
 
   useEffect(() => {
     let active = true;
 
     void Promise.all(
       tickets.map(async (ticket) => {
-        const dataUrl = await toQrDataUrl(ticket.claimUrl, 220);
+        const dataUrl = await toQrDataUrl(ticket.claimUrl, 320);
         return [ticket.publicCode, dataUrl] as const;
       }),
     ).then((entries) => {
@@ -77,12 +79,19 @@ export function BatchPrintClient({
         <section key={pageIndex} className="print-batch-page">
           {page.map((ticket) => (
             <article key={ticket.publicCode} className="print-batch-slip">
-              <BrandMark compact className="print-brand-mark" />
-              <p className="print-kicker">{churchName}</p>
-              <p className="print-ticket-label">Sua senha</p>
-              <p className="font-heading print-batch-code">
-                {ticket.publicCode}
-              </p>
+              <div className="print-batch-copy">
+                <BrandMark compact className="print-brand-mark" />
+                <p className="print-kicker">{churchName}</p>
+                <p className="print-ticket-label">Sua senha</p>
+                <p className="font-heading print-batch-code">
+                  {ticket.publicCode}
+                </p>
+                <p className="print-batch-hint">Acompanhe no telão</p>
+                <p className="print-batch-note">
+                  Com celular, aponte a câmera neste QR. Sem celular, use este
+                  papel.
+                </p>
+              </div>
               {qrs[ticket.publicCode] ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -93,11 +102,6 @@ export function BatchPrintClient({
               ) : (
                 <div className="print-batch-qr print-batch-qr-pending" />
               )}
-              <p className="print-batch-hint">Acompanhe no telão</p>
-              <p className="print-batch-note">
-                Com celular, aponte a câmera neste QR. Sem celular, use este
-                papel.
-              </p>
             </article>
           ))}
         </section>
