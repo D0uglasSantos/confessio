@@ -12,6 +12,8 @@ export type PublicStationState = {
   priest_name: string | null;
   status: StationStatus;
   current_public_code: string | null;
+  called_at: string | null;
+  last_recalled_at: string | null;
 };
 
 export type PublicSessionState = {
@@ -88,7 +90,13 @@ export function parsePublicSessionState(value: unknown): PublicSessionState | nu
 
   return {
     session: data.session,
-    stations: Array.isArray(data.stations) ? data.stations : [],
+    stations: Array.isArray(data.stations)
+      ? data.stations.map((station) => ({
+          ...station,
+          called_at: station.called_at ?? null,
+          last_recalled_at: station.last_recalled_at ?? null,
+        }))
+      : [],
     waiting_count: Number(data.waiting_count ?? 0),
     waiting_codes: Array.isArray(data.waiting_codes) ? data.waiting_codes : [],
   };

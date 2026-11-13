@@ -582,6 +582,28 @@
   color: #f3e6c4;
 }
 
+.tv-sound-enable {
+  position: fixed;
+  right: 2.4vmin;
+  bottom: 2.4vmin;
+  z-index: 20;
+  border: 0.25vmin solid rgba(255, 224, 138, 0.55);
+  border-radius: 999px;
+  background: rgba(38, 28, 48, 0.92);
+  color: #ffe08a;
+  cursor: pointer;
+  font-size: clamp(0.95rem, 1.8vmin, 1.25rem);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 1.1vmin 2.2vmin;
+}
+
+.tv-sound-enable:hover,
+.tv-sound-enable:focus-visible {
+  background: rgba(62, 42, 73, 0.96);
+  outline: none;
+}
+
 @media (max-width: 899px) {
   .tv-shell,
   .tv-shell[data-dense="true"] {

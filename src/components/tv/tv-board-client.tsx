@@ -2,6 +2,7 @@
 
 import { PulseBlock } from "@/components/loading-state";
 import { usePublicSession } from "@/hooks/use-public-session";
+import { useTvCallChime } from "@/hooks/use-tv-call-chime";
 import type { PublicSessionState, PublicStationState } from "@/lib/queue/types";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +36,7 @@ export function TvBoardClient({ slug }: { slug: string }) {
 
 function TvBoardView({ state }: { state: PublicSessionState }) {
   const { session, stations, waiting_codes } = state;
+  const { soundReady, enableSound } = useTvCallChime(stations);
   const calls = visibleCalls(stations);
   const called = calls.find((station) => station.status === "CALLING") ?? null;
   const dense = calls.length >= 7;
@@ -107,6 +109,17 @@ function TvBoardView({ state }: { state: PublicSessionState }) {
           </p>
         ) : null}
       </aside>
+      {!soundReady ? (
+        <button
+          type="button"
+          className="tv-sound-enable"
+          onClick={() => {
+            void enableSound();
+          }}
+        >
+          Ativar som das chamadas
+        </button>
+      ) : null}
     </main>
   );
 }

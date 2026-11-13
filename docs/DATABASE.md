@@ -2681,28 +2681,24 @@ Exemplo:
   "waiting_codes": [],
   "stations": [
     {
+      "id": "...",
       "name": "Confessionário 01",
       "priest_name": "Pe. Victor",
       "status": "BUSY",
-      "current_ticket": {
-        "public_code": "C-021",
-        "status": "IN_SERVICE"
-      }
+      "current_public_code": "C-021",
+      "called_at": "2026-11-13T20:10:00Z",
+      "last_recalled_at": null
     },
     {
+      "id": "...",
       "name": "Confessionário 02",
       "priest_name": "Pe. João",
       "status": "CALLING",
-      "current_ticket": {
-        "public_code": "C-024",
-        "status": "CALLED"
-      }
+      "current_public_code": "C-024",
+      "called_at": "2026-11-13T20:12:00Z",
+      "last_recalled_at": "2026-11-13T20:14:00Z"
     }
-  ],
-  "latest_call": {
-    "public_code": "C-024",
-    "station_name": "Confessionário 02"
-  }
+  ]
 }
 ```
 
