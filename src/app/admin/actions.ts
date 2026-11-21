@@ -610,6 +610,64 @@ export async function closeEntryAction(
   return { ok: true, message: "Entrada encerrada." };
 }
 
+export async function reopenEntryAction(
+  sessionId: string,
+): Promise<ActionResult> {
+  const { supabase, church } = await requireAdminChurch();
+
+  if (!church.is_active) {
+    return { ok: false, message: CHURCH_INACTIVE_MESSAGE };
+  }
+
+  const { data: session } = await supabase
+    .from("sessions")
+    .select("id, status, church_id, ends_at")
+    .eq("id", sessionId)
+    .single();
+
+  if (!session || session.church_id !== church.id) {
+    return { ok: false, message: "Sessão não encontrada." };
+  }
+
+  if (session.status !== "ENTRY_CLOSED") {
+    return {
+      ok: false,
+      message: "Só é possível reabrir a entrada com ela encerrada.",
+    };
+  }
+
+  const endsAtPast =
+    session.ends_at !== null &&
+    new Date(session.ends_at).getTime() <= Date.now();
+
+  const { error } = await supabase
+    .from("sessions")
+    .update({
+      status: "OPEN",
+      entry_closed_at: null,
+      ...(endsAtPast ? { ends_at: null } : {}),
+    })
+    .eq("id", sessionId);
+
+  if (error) {
+    return {
+      ok: false,
+      message: mapQueueError(
+        error.message,
+        "Não foi possível reabrir a entrada.",
+      ),
+    };
+  }
+
+  revalidateParishAdmin(sessionId);
+  return {
+    ok: true,
+    message: endsAtPast
+      ? "Entrada reaberta. O horário de fim já tinha passado e foi removido."
+      : "Entrada reaberta.",
+  };
+}
+
 export async function finishSessionAction(
   sessionId: string,
   force = false,

@@ -20,7 +20,7 @@ Realtime invalida e o cliente **refetcha a RPC**. Não enviar `anonymous_token`,
 
 - Um ticket ativo (`CALLED` / `IN_SERVICE`) por estação.
 - `public_number` / `public_code` únicos por sessão.
-- `starts_at` abre a fila (`DRAFT` → `OPEN`) se ninguém abriu antes. `ends_at` encerra só a entrada (`ENTRY_CLOSED`); não finaliza a sessão.
+- `starts_at` abre a fila (`DRAFT` → `OPEN`) se ninguém abriu antes. `ends_at` encerra só a entrada (`ENTRY_CLOSED`); não finaliza a sessão. O admin pode reabrir a entrada (`ENTRY_CLOSED` → `OPEN`); se o `ends_at` já passou, ele é limpo para a entrada não fechar de novo sozinha.
 - Fiel e sacerdote sem conta no MVP. Só `/admin` usa Supabase Auth.
 
 Detalhe de schema, estados e testes: [DATABASE.md](../DATABASE.md).

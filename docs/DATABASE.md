@@ -2458,7 +2458,7 @@ DRAFT → OPEN
 
 Depois disso `create_ticket()` passa a aceitar entradas.
 
-Se ninguém abrir antes, `starts_at` abre a fila sozinha (`DRAFT` → `OPEN`). Assim que `ends_at` chega, a entrada fecha sozinha (`OPEN` → `ENTRY_CLOSED`). O admin ainda pode abrir antes do horário e encerrar a entrada antes do fim. Finalizar a sessão continua sendo ação manual.
+Se ninguém abrir antes, `starts_at` abre a fila sozinha (`DRAFT` → `OPEN`). Assim que `ends_at` chega, a entrada fecha sozinha (`OPEN` → `ENTRY_CLOSED`). O admin ainda pode abrir antes do horário, encerrar a entrada antes do fim e **reabrir a entrada** (`ENTRY_CLOSED` → `OPEN`) para aceitar mais fiéis e emitir novas senhas. Se o `ends_at` já passou no momento da reabertura, o horário é removido para o banco não fechar a entrada de novo. Finalizar a sessão continua sendo ação manual.
 
 ---
 
