@@ -40,7 +40,6 @@ export default async function BatchPrintPage({ params }: BatchPrintPageProps) {
   return (
     <BatchPrintClient
       backHref={`/admin/sessoes/${sessionId}`}
-      churchName={batch.churchName || church.name}
       tickets={batch.tickets.map((ticket) => ({
         publicCode: ticket.publicCode,
         claimUrl: ticketClaimUrl(batch.sessionSlug, ticket.token),
