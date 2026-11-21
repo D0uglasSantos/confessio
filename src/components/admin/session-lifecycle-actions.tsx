@@ -7,6 +7,7 @@ import {
   closeEntryAction,
   finishSessionAction,
   openSessionAction,
+  reopenEntryAction,
   toggleWaitingQueueOnTvAction,
 } from "@/app/admin/actions";
 import { useInFlightLock } from "@/hooks/use-in-flight-lock";
@@ -17,7 +18,7 @@ import { Loader2Icon } from "lucide-react";
 import type { Database } from "@/types/database";
 
 type SessionStatus = Database["public"]["Enums"]["session_status"];
-type PendingAction = "open" | "close" | "finish" | "tv" | null;
+type PendingAction = "open" | "reopen" | "close" | "finish" | "tv" | null;
 
 export function SessionLifecycleActions({
   sessionId,
@@ -126,6 +127,23 @@ export function SessionLifecycleActions({
               }
             >
               {pendingAction === "close" ? "Encerrando..." : "Encerrar entrada"}
+            </Button>
+          ) : null}
+
+          {status === "ENTRY_CLOSED" ? (
+            <Button
+              size="lg"
+              loading={pendingAction === "reopen"}
+              disabled={busy}
+              onClick={() =>
+                run(
+                  "reopen",
+                  () => reopenEntryAction(sessionId),
+                  "Entrada reaberta.",
+                )
+              }
+            >
+              {pendingAction === "reopen" ? "Reabrindo..." : "Reabrir entrada"}
             </Button>
           ) : null}
 
