@@ -797,37 +797,20 @@
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
-  gap: 0.12rem;
-}
-
-.print-batch-slip .print-brand-mark img {
-  height: 6.5mm;
-  width: auto;
-}
-
-.print-batch-slip .print-kicker {
-  font-size: 0.62rem;
-  line-height: 1.2;
-  letter-spacing: 0.06em;
-  color: #686169;
-}
-
-.print-batch-slip .print-ticket-label {
-  margin: 0.15rem 0 0;
-  font-size: 0.72rem;
+  gap: 0.35rem;
 }
 
 .print-batch-code {
   margin: 0;
-  font-size: 1.85rem;
+  font-size: 2.35rem;
   font-weight: 700;
   line-height: 0.95;
   letter-spacing: -0.03em;
 }
 
 .print-batch-qr {
-  width: 32mm;
-  height: 32mm;
+  width: 36mm;
+  height: 36mm;
   flex-shrink: 0;
   object-fit: contain;
   background: #fff;
@@ -839,8 +822,8 @@
 }
 
 .print-batch-hint {
-  margin: 0.2rem 0 0;
-  font-size: 0.82rem;
+  margin: 0;
+  font-size: 0.9rem;
   font-weight: 700;
   line-height: 1.2;
 }
